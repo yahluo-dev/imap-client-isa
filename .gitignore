@@ -1,1 +1,3 @@
 imapcl
+*.o
+test-credentials
