@@ -1,3 +1,4 @@
 imapcl
 *.o
 test-credentials
+*.png
