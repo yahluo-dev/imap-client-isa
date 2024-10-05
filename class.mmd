@@ -1,0 +1,134 @@
+%%{init: { "class": { "height": 300, "width": 300 } } }%%
+classDiagram
+  class Main {
+    -void print_prompt()
+    -ImapState state
+    +repl()
+    +ctrlc_handler(s: int)
+  }
+
+  class ResponseFactory {
+    +Response *create(m: string)
+  }
+
+  class CommandFactory {
+    +Command *create(m: string)
+  }
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %% COMMANDS (by state of communication in which are expected by server)
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  class Command {
+    +CommandType type
+  }
+
+  %% Any state
+
+  class LogoutCommand {
+    no fields
+  }
+
+  %% NAUTHD
+
+  class StarttlsCommand {
+    no fields
+  }
+
+  class LoginCommand {
+    +string user_name
+    +string password
+  }
+
+  %% AUTHD
+
+  class SelectCommand {
+    +string mailbox_name
+  }
+
+  %% SELECTED
+
+  class SearchCommand {
+    - searching criteria?
+  }
+
+  class FetchCommand {
+    -vector<int> sequence_set
+    -FetchType type
+  }
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %% RESPONSES
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  class Response {
+    +ResponseType type
+  }
+
+  class OkResponse {
+    +Tag tag
+    +string text
+  }
+
+  class NoResponse {
+    +Tag tag
+    +string text
+  }
+
+  class BadResponse {
+    +Tag tag
+    +string text
+  }
+
+  class PreauthResponse {
+    +Tag tag
+    +string text
+  }
+
+  class ByeResponse {
+    +Tag tag
+    +string text
+  }
+
+  class ListResponse {
+    ads
+  }
+
+  class SearchResponse {
+    vector<int> messages
+  }
+
+  class FlagsResponse {
+    asd
+  }
+
+  class ExistsResponse {
+    no fields
+  }
+
+  class FetchResponse {
+    +Tag tag
+    +ImfMessage contents_imf
+  }
+
+  <<Abstract>> Command
+  CommandFactory -- Command : << instantiates >>
+  Command <|-- LogoutCommand
+  Command <|-- StarttlsCommand
+  Command <|-- LoginCommand
+  Command <|-- SelectCommand
+  Command <|-- SearchCommand
+  Command <|-- FetchCommand
+
+  <<Abstract>> Response
+  ResponseFactory -- Response : << instantiates >>
+  Response <|-- OkResponse
+  Response <|-- NoResponse
+  Response <|-- BadResponse
+  Response <|-- PreauthResponse
+  Response <|-- ByeResponse
+  Response <|-- ListResponse
+  Response <|-- SearchResponse
+  Response <|-- FlagsResponse
+  Response <|-- ExistsResponse
+  Response <|-- FetchResponse
