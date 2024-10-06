@@ -1,8 +1,7 @@
 %%{init: { "class": { "height": 300, "width": 300 } } }%%
 classDiagram
-  class Main {
+  class Client {
     -void print_prompt()
-    -ImapState state
     +repl()
     +ctrlc_handler(s: int)
   }
@@ -11,16 +10,13 @@ classDiagram
     +Response *create(m: string)
   }
 
-  class CommandFactory {
-    +Command *create(m: string)
-  }
-
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %% COMMANDS (by state of communication in which are expected by server)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   class Command {
     +CommandType type
+    +string tag
   }
 
   %% Any state
@@ -90,29 +86,60 @@ classDiagram
     +string text
   }
 
-  class ListResponse {
-    ads
-  }
+%%  class ListResponse {
+%%    TODO
+%%  }
 
   class SearchResponse {
-    vector<int> messages
+     messages
   }
 
-  class FlagsResponse {
-    asd
-  }
+%%  class FlagsResponse {
+%%    TODO
+%%  }
 
-  class ExistsResponse {
-    no fields
-  }
+%%  class ExistsResponse {
+%%    no fields
+%%  }
 
   class FetchResponse {
     +Tag tag
-    +ImfMessage contents_imf
   }
 
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %% MESSAGE
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  class IMFMessage {
+    +Datetime date
+    +std::string from
+    +std::string to
+    +std::string subject
+    +std::string message_id
+    +std::string body
+  }
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %% SESSION
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  class Session {
+    -imap_state_t state
+    -string username
+    -string password
+    -int socket
+  }
+  class TLSSession {
+    -TLSSession()
+    -initalize_ssl()
+  }
+
+  Session <|-- TLSSession
+
+  Client -- Session : << uses >>
+
   <<Abstract>> Command
-  CommandFactory -- Command : << instantiates >>
+  Session -- Command : << instantiates >>
   Command <|-- LogoutCommand
   Command <|-- StarttlsCommand
   Command <|-- LoginCommand
@@ -121,14 +148,17 @@ classDiagram
   Command <|-- FetchCommand
 
   <<Abstract>> Response
+  Session -- ResponseFactory : << uses >>
   ResponseFactory -- Response : << instantiates >>
   Response <|-- OkResponse
   Response <|-- NoResponse
   Response <|-- BadResponse
   Response <|-- PreauthResponse
   Response <|-- ByeResponse
-  Response <|-- ListResponse
   Response <|-- SearchResponse
-  Response <|-- FlagsResponse
-  Response <|-- ExistsResponse
+%%  Response <|-- ListResponse
+%%  Response <|-- FlagsResponse
+%%  Response <|-- ExistsResponse
   Response <|-- FetchResponse
+
+  FetchResponse -- IMFMessage
