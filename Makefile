@@ -16,10 +16,16 @@ zip: $(LOGIN).zip
 debug: CXXFLAGS += $(debug_flags)
 debug: $(EXE)
 
-$(EXE): main.o
+$(EXE): main.o command.o command_factory.o
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
 main.o: main.cpp
+	$(CXX) $(CXXFLAGS) -c $^ -o $@
+
+command.o: command.cpp
+	$(CXX) $(CXXFLAGS) -c $^ -o $@
+
+command_factory.o: command_factory.cpp
 	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
 clean:
