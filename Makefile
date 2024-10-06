@@ -19,7 +19,7 @@ debug: $(EXE)
 
 test: $(TESTEXE)
 
-$(EXE): main.o command.o command_factory.o
+$(EXE): main.o command.o response.o
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
 main.o: main.cpp
@@ -28,7 +28,7 @@ main.o: main.cpp
 command.o: command.cpp
 	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
-command_factory.o: command_factory.cpp
+response.o: response.cpp
 	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
 $(TESTEXE): test/test_main.o test/make_tcp.o command.o
