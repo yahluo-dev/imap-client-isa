@@ -20,6 +20,10 @@ LoginCommand::LoginCommand(std::string _tag, std::string _user_name, std::string
   : Command(_tag), user_name(_user_name), password(_password)
 {}
 
+SelectCommand::SelectCommand(std::string _tag, std::string _mailbox_name)
+  : Command(_tag), mailbox_name(_mailbox_name)
+{}
+
 SearchCommand::SearchCommand(std::string _tag, std::string _search_criteria)
   : Command(_tag), search_criteria(_search_criteria)
 {}
@@ -30,21 +34,21 @@ FetchCommand::FetchCommand(std::string _tag, std::vector<uint32_t> _sequence_set
 
 std::string LoginCommand::make_tcp()
 {
-  std::string command_string = std::format("{} LOGIN {} {}", tag, user_name, password);
+  std::string command_string = std::format("{} LOGIN {} {}\r\n", tag, user_name, password);
 
   return command_string;
 }
 
 std::string SelectCommand::make_tcp()
 {
-  std::string command_string = std::format("{} SELECT {}", tag, mailbox_name);
+  std::string command_string = std::format("{} SELECT {}\r\n", tag, mailbox_name);
 
   return command_string;
 }
 
 std::string SearchCommand::make_tcp()
 {
-  std::string command_string = std::format("{} SEARCH {}", tag, search_criteria);
+  std::string command_string = std::format("{} SEARCH {}\r\n", tag, search_criteria);
 
   return command_string;
 }
@@ -56,6 +60,7 @@ std::string FetchCommand::make_tcp()
   {
     command_string += std::format(" {}", num);
   }
+  command_string += "\r\n";
 
   return command_string;
 }
