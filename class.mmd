@@ -1,10 +1,16 @@
 %%{init: { "class": { "height": 300, "width": 300 } } }%%
 classDiagram
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %% CLIENT
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
   class Client {
     -void print_prompt()
     +repl()
     +ctrlc_handler(s: int)
   }
+
+  note for Client "Handles interaction with the user, including a REPL in interactive mode"
 
   class ResponseFactory {
     +Response *create(m: string)
@@ -127,16 +133,33 @@ classDiagram
     -imap_state_t state
     -string username
     -string password
-    -int socket
-  }
-  class TLSSession {
-    -TLSSession()
-    -initalize_ssl()
   }
 
-  Session <|-- TLSSession
+  note for Session "Handles user actions as sequences of requests on a high level"
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %% SERVER
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  class Server {
+    -socket sock
+    +Server(hostname, port)
+    +void connect()
+    +void send_command()
+    +void receive_response()
+  }
+
+  note for Server "Implements low-level connection and TLS-related logic"
+
+  class TLSServer {
+    +TLSServer(hostname, port)
+    -void init_tls()
+  }
+
+  Server <|-- TLSServer
 
   Client -- Session : << uses >>
+  Session -- Server : << uses >>
 
   <<Abstract>> Command
   Session -- Command : << instantiates >>
@@ -148,7 +171,7 @@ classDiagram
   Command <|-- FetchCommand
 
   <<Abstract>> Response
-  Session -- ResponseFactory : << uses >>
+  Server -- ResponseFactory : << uses >>
   ResponseFactory -- Response : << instantiates >>
   Response <|-- OkResponse
   Response <|-- NoResponse
