@@ -3,11 +3,8 @@
 #include <unistd.h>
 #include <regex>
 #include <stdexcept>
-#include <netinet/in.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
 #include "main.hpp"
+#include "session.hpp"
 
 typedef struct {
   std::string username;
@@ -157,61 +154,6 @@ int main(int argc, char *argv[])
     std::cout << "Creds: " << creds.username << ":" << creds.password << std::endl;
   }
 
+  std::unique_ptr<Session> session = std::make_unique<Session>(server_hostname, port_number);
 
-  int rv;
-  struct addrinfo hints = {0};
-  struct addrinfo *p;
-  struct addrinfo *server_addrinfo;
-  int client_socket;
-
-  hints.ai_family = AF_INET;
-  hints.ai_socktype = SOCK_STREAM;
-
-  if (0 != (rv = getaddrinfo(server_hostname.c_str(), port_number.c_str(), &hints, &server_addrinfo)))
-  {
-    std::cerr << "getaddrinfo: " << gai_strerror(rv);
-    fflush(stderr);
-    return 1;
-  }
-
-  for(p = server_addrinfo; p != NULL; p = p->ai_next) {
-    if ((client_socket = socket(p->ai_family, p->ai_socktype,
-                                p->ai_protocol)) == -1) {
-      perror("client: socket");
-      fflush(stderr);
-      return 1;
-      continue;
-    }
-
-    if (connect(client_socket, p->ai_addr, p->ai_addrlen) == -1) {
-      close(client_socket);
-      perror("client: connect");
-      fflush(stderr);
-      return 1;
-      continue;
-    }
-  }
-
-  char buffer[2048];
-
-  std::string response;
-
-  ssize_t bytes_recvd = recv(client_socket, &buffer, 2048, 0);
-
-  response = std::string(buffer, bytes_recvd);
-
-  std::string message = "1 LOGIN " + creds.username + " " + creds.password + "\r\n";
-
-
-  send(client_socket, message.c_str(), message.size(), 0);
-
-  int a;
-
-  std::cin >> a;
-
-  bytes_recvd = recv(client_socket, &buffer, 2048, 0);
-
-  response = std::string(buffer, bytes_recvd);
-
-  std::cout << response << std::endl;
 }

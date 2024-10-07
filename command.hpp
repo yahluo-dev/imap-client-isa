@@ -22,6 +22,7 @@ class Command
     Command(std::string tag);
     command_type_t get_type();
     virtual std::string make_tcp();
+    virtual ~Command() = default;
 };
 
 class LoginCommand: public Command

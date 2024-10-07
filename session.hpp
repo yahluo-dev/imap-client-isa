@@ -2,6 +2,8 @@
 #define SESSION_H_
 
 #include <string>
+#include <memory>
+#include "server.hpp"
 
 enum imap_state_t
 {
@@ -16,15 +18,10 @@ class Session
   imap_state_t state;
   std::string username;
   std::string password;
-  int socket;
+  std::unique_ptr<Server> server;
   public:
-  Session(const std::string _username, const std::string _password);
-};
-
-class TLSSession : public Session
-{
-  public:
-  TLSSession(const std::string _username, const std::string _password);
+  Session(const std::string hostname, const std::string port);
+  void Login(const std::string _username, const std::string _password);
 };
 
 #endif // SESSION_H_

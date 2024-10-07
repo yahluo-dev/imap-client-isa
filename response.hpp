@@ -26,9 +26,10 @@ class Response
   Response(std::string _tag);
   virtual response_type_t get_type();
   virtual std::string get_tag();
+  virtual ~Response() = default;
 };
 
-class TextResponse // OkResponse, NoResponse, BadResponse, PreauthResponse, ByeResponse
+class TextResponse : public Response // OkResponse, NoResponse, BadResponse, PreauthResponse, ByeResponse
 {
   private:
   std::string text;
@@ -37,7 +38,7 @@ class TextResponse // OkResponse, NoResponse, BadResponse, PreauthResponse, ByeR
   std::string get_text();
 };
 
-class SearchResponse
+class SearchResponse : public Response
 {
   private:
   std::vector<uint32_t> seq_numbers;
@@ -46,7 +47,7 @@ class SearchResponse
   std::vector<uint32_t> get_seq_numbers();
 };
 
-class FetchResponse
+class FetchResponse : public Response
 {
   private:
   IMFMessage *message_data; // FIXME: What if we only want to fetch headers?

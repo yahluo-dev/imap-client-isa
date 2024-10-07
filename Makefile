@@ -19,7 +19,7 @@ debug: $(EXE)
 
 test: $(TESTEXE)
 
-$(EXE): main.o command.o response.o response_factory.o
+$(EXE): main.o command.o response.o response_factory.o session.o server.o
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
 main.o: main.cpp
@@ -29,6 +29,12 @@ command.o: command.cpp
 	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
 response.o: response.cpp
+	$(CXX) $(CXXFLAGS) -c $^ -o $@
+
+session.o: session.cpp
+	$(CXX) $(CXXFLAGS) -c $^ -o $@
+
+server.o: server.cpp
 	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
 response_factory.o: response_factory.cpp
