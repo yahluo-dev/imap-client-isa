@@ -12,7 +12,7 @@ TESTEXE=imapcl-tests
 LOGIN=xvasil10
 
 all: debug
-zip: $(LOGIN).zip
+tar: $(LOGIN).tar
 
 debug: CXXFLAGS += $(debug_flags)
 debug: $(EXE)
@@ -49,7 +49,13 @@ test/test_main.o: test/test_main.cpp
 test/make_tcp.o: test/make_tcp.cpp
 	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
+$(LOGIN).tar:
+	tar -cvf $@ *.cpp *.hpp README.md
+
+
 clean:
 	$(RM) $(EXE) *.o
+
+.PHONY: clean $(LOGIN).tar
 
 # end
