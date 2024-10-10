@@ -3,6 +3,9 @@
 
 #include <string>
 #include <stack>
+#include <memory>
+
+#include "response.hpp"
 
 class ResponseParser
 {
@@ -13,11 +16,12 @@ class ResponseParser
   void save_pos();
   void restore_pos();
   void pop_pos();
+  std::shared_ptr<Response> parsed_response;
   public:
   ResponseParser(std::string _data)
     : data(_data), curr_pos(0){};
-  bool match(std::string expected);
 
+  bool match(std::string expected);
   bool parse_text();
   bool parse_text_char();
   bool parse_resp_text();

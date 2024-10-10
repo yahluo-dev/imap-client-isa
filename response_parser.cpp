@@ -1,6 +1,10 @@
 #include <cctype>
 #include "response_parser.hpp"
 
+#define PARSE_FAIL {restore_pos();return false;}
+#define PARSE_SUCCESS {pop_pos();return false;} // TODO: Replace macros with a decorator
+
+
 void ResponseParser::save_pos()
 {
   pos_stack.push(curr_pos);
@@ -257,6 +261,32 @@ bool ResponseParser::parse_continue_req()
 
   pop_pos();
   return true;
+}
+
+
+
+// response-data   = "*" SP (resp-cond-state / resp-cond-bye /
+//                   mailbox-data / message-data / capability-data) CRLF
+bool ResponseParser::parse_response_data()
+{
+  save_pos();
+  if (!match("*"))
+    PARSE_FAIL
+  if (!match(" "))
+    PARSE_FAIL
+  if (parse_resp_cond_state()){}
+  else if (parse_resp_cond_bye()){}
+  // else if (parse_mailbox_data()){}
+  // else if (parse_capability_data()){}
+  else
+  {
+    PARSE_FAIL
+  }
+
+  if (!parse_crlf())
+    PARSE_FAIL
+
+  PARSE_SUCCESS
 }
 
 // response = *(continue-req / response-data) response-done
