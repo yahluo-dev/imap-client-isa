@@ -28,6 +28,7 @@ class ResponseParser
   bool parse_crlf();
   bool parse_tag();
   bool parse_response();
+  bool parse_number();
   bool parse_continue_req();
   bool parse_response_data();
   bool parse_response_done();
@@ -36,6 +37,9 @@ class ResponseParser
   bool parse_response_cond_auth();
   bool parse_resp_cond_state();
   bool parse_resp_cond_bye();
+  bool parse_mailbox_data();
+  bool parse_flag_list();
+  bool parse_mailbox_list();
   bool parse();
 };
 

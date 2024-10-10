@@ -1,8 +1,15 @@
 #include <cctype>
+#include <iostream>
+#include <format>
+#include <stdio.h>
 #include "response_parser.hpp"
 
 #define PARSE_FAIL {restore_pos();return false;}
 #define PARSE_SUCCESS {pop_pos();return false;} // TODO: Replace macros with a decorator
+
+#define EXPECT_MATCH(s) {if (!match(s)){restore_pos();return false;}}
+
+#define debug(...) printf("DEBUG :: " __VA_ARGS__);
 
 
 void ResponseParser::save_pos()
@@ -49,6 +56,22 @@ bool ResponseParser::parse_crlf()
   return true;
 }
 
+bool ResponseParser::parse_number()
+{
+  save_pos();
+  bool success = false;
+  while (std::isdigit(data[curr_pos]))
+  {
+    curr_pos += 1;
+    success = true;
+  }
+  if (success)
+    PARSE_SUCCESS
+  else
+    PARSE_FAIL
+  return success;
+}
+
 bool ResponseParser::parse_tag()
 {
   bool success = false;
@@ -66,9 +89,14 @@ bool ResponseParser::parse_text_char()
 {
   save_pos();
 
-  if (data[curr_pos] == '\r' || data[curr_pos == '\n'])
+  std::cout << "Parse text char " << data[curr_pos] << std::endl;
+  if (data[curr_pos] == '\r' || data[curr_pos] == '\n')
   {
+    debug("from ");
+    std::cout << curr_pos << std::endl;
     restore_pos();
+    debug("restored pos to ");
+    std::cout << curr_pos << std::endl;
     return false;
   }
   else
@@ -84,6 +112,8 @@ bool ResponseParser::parse_text()
 {
   save_pos();
   bool success = false;
+  debug("parse_text: parsing from ");
+  std::cout <<  data.substr(curr_pos, 2) << std::endl;
 
   if (parse_text_char())
     success = true;
@@ -93,10 +123,13 @@ bool ResponseParser::parse_text()
   if (success)
   {
     pop_pos();
+    debug("parse_text success");
     return true;
   }
   else
   {
+    debug("parse_text fail at");
+    std::cout <<  data.substr(curr_pos, 2) << std::endl;
     restore_pos();
     return false;
   }
@@ -263,6 +296,65 @@ bool ResponseParser::parse_continue_req()
   return true;
 }
 
+bool ResponseParser::parse_flag_list()
+{
+ // TODO
+ return false;
+}
+
+bool ResponseParser::parse_mailbox_list()
+{
+ // TODO
+ return false;
+}
+
+
+// mailbox-data    =  "FLAGS" SP flag-list / "LIST" SP mailbox-list /
+//                    "LSUB" SP mailbox-list / "SEARCH" *(SP nz-number) /
+//                    "STATUS" SP mailbox SP "(" [status-att-list] ")" /
+//                    number SP "EXISTS" / number SP "RECENT"
+bool ResponseParser::parse_mailbox_data()
+{
+  save_pos();
+  if (match("FLAGS"))
+  {
+    EXPECT_MATCH(" ");
+    if (!parse_flag_list())
+    {
+      restore_pos();
+      return false; // Can this even happen for a valid string?
+    }
+    pop_pos();
+    return true;
+  }
+  else if (match("LIST"))
+  {
+    EXPECT_MATCH(" ");
+    if (!parse_mailbox_list())
+    {
+      restore_pos();
+      return false;
+    }
+  }
+  else if (match("LSUB"))
+  {
+    EXPECT_MATCH(" ");
+    if (!parse_mailbox_list())
+    {
+      restore_pos();
+      return false;
+    }
+  }
+  else if (match("LSUB"))
+  {
+    EXPECT_MATCH(" ");
+    if (!parse_mailbox_list())
+    {
+      restore_pos();
+      return false;
+    }
+  }
+}
 
 
 // response-data   = "*" SP (resp-cond-state / resp-cond-bye /
@@ -276,7 +368,7 @@ bool ResponseParser::parse_response_data()
     PARSE_FAIL
   if (parse_resp_cond_state()){}
   else if (parse_resp_cond_bye()){}
-  // else if (parse_mailbox_data()){}
+  else if (parse_mailbox_data()){}
   // else if (parse_capability_data()){}
   else
   {
