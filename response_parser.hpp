@@ -22,10 +22,14 @@ class ResponseParser
     : data(_data), curr_pos(0){};
 
   bool match(std::string expected);
+  bool regex_match(std::regex expected);
   bool parse_text();
   bool parse_text_char();
   bool parse_resp_text();
-  bool parse_crlf();
+  bool parse_mailbox();
+  bool parse_message_id_list();
+  bool parse_resp_text_code();
+  bool match_crlf();
   bool parse_tag();
   bool parse_response();
   bool parse_number();
@@ -41,6 +45,10 @@ class ResponseParser
   bool parse_flag_list();
   bool parse_mailbox_list();
   bool parse();
+
+  bool parse_astring();
+  bool parse_string();
+  bool parse_quoted();
 };
 
 #endif // RESPONSE_PARSER_H_

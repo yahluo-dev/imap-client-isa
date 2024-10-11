@@ -1,16 +1,16 @@
 #include <cctype>
 #include <iostream>
 #include <format>
+#include <regex>
 #include <stdio.h>
 #include "response_parser.hpp"
 
-#define PARSE_FAIL {restore_pos();return false;}
-#define PARSE_SUCCESS {pop_pos();return false;} // TODO: Replace macros with a decorator
+#define PARSE_FAIL {std::cout << "DEBUG :: " << __func__ << "() failed on char " << curr_pos << "("<< data[curr_pos] << ")" <<std::endl ;restore_pos();return false;}
+#define PARSE_SUCCESS {pop_pos();return true;}
 
 #define EXPECT_MATCH(s) {if (!match(s)){restore_pos();return false;}}
 
 #define debug(...) printf("DEBUG :: " __VA_ARGS__);
-
 
 void ResponseParser::save_pos()
 {
@@ -38,16 +38,23 @@ bool ResponseParser::match(std::string expected)
   return false;
 }
 
-bool ResponseParser::parse_crlf()
+bool ResponseParser::regex_match(std::regex expected)
+{
+  std::smatch match;
+  std::string substring = data.substr(curr_pos);
+  std::regex_search(substring, match, expected);
+  if (match.size() > 0)
+  {
+    curr_pos += match[0].str().size();
+    return true;
+  }
+  return false;
+}
+
+bool ResponseParser::match_crlf()
 {
   save_pos();
-  if (!match("\r"))
-  {
-    restore_pos();
-    return false;
-  }
-
-  if (!match("\n"))
+  if (!match("\r\n"))
   {
     restore_pos();
     return false;
@@ -89,14 +96,9 @@ bool ResponseParser::parse_text_char()
 {
   save_pos();
 
-  std::cout << "Parse text char " << data[curr_pos] << std::endl;
   if (data[curr_pos] == '\r' || data[curr_pos] == '\n')
   {
-    debug("from ");
-    std::cout << curr_pos << std::endl;
     restore_pos();
-    debug("restored pos to ");
-    std::cout << curr_pos << std::endl;
     return false;
   }
   else
@@ -112,8 +114,6 @@ bool ResponseParser::parse_text()
 {
   save_pos();
   bool success = false;
-  debug("parse_text: parsing from ");
-  std::cout <<  data.substr(curr_pos, 2) << std::endl;
 
   if (parse_text_char())
     success = true;
@@ -123,23 +123,57 @@ bool ResponseParser::parse_text()
   if (success)
   {
     pop_pos();
-    debug("parse_text success");
     return true;
   }
   else
   {
-    debug("parse_text fail at");
-    std::cout <<  data.substr(curr_pos, 2) << std::endl;
     restore_pos();
     return false;
   }
+}
+
+// resp-text-code  = "ALERT" /
+//                   "BADCHARSET" [SP "(" astring *(SP astring) ")" ] /
+//                   capability-data / "PARSE" /
+//                   "PERMANENTFLAGS" SP "("
+//                   [flag-perm *(SP flag-perm)] ")" /
+//                   "READ-ONLY" / "READ-WRITE" / "TRYCREATE" /
+//                   "UIDNEXT" SP nz-number / "UIDVALIDITY" SP nz-number /
+//                   "UNSEEN" SP nz-number /
+//                   atom [SP 1*<any TEXT-CHAR except "]">]
+bool ResponseParser::parse_resp_text_code()
+{
+  save_pos();
+  if (match("ALERT"))
+    PARSE_SUCCESS
+  else if (match("UNSEEN"))
+  {
+    EXPECT_MATCH(" ");
+    if (!parse_number())
+      PARSE_FAIL
+    PARSE_SUCCESS
+  }
+  else if (match("READ-ONLY") || match("READ-WRITE"))
+  {
+    PARSE_SUCCESS
+  }
+  PARSE_FAIL
+  // TODO
 }
 
 // resp-text       = ["[" resp-text-code "]" SP] text
 bool ResponseParser::parse_resp_text()
 {
   save_pos();
-  // TODO: parse_resp_text_code()
+  if (match("["))
+  {
+    parse_resp_text_code();
+    if (!match("]"))
+      PARSE_FAIL
+    if (!match(" "))
+      PARSE_FAIL
+  }
+
   if (!parse_text())
   {
     restore_pos();
@@ -219,6 +253,8 @@ bool ResponseParser::parse_response_tagged()
     restore_pos();
     return false;
   }
+  if (!match_crlf())
+    PARSE_FAIL
   pop_pos();
   return true;
 }
@@ -286,7 +322,7 @@ bool ResponseParser::parse_continue_req()
     restore_pos(); // no support for base64 for now
     return false;
   }
-  if (!parse_crlf())
+  if (!match_crlf())
   {
     restore_pos();
     return false;
@@ -308,6 +344,62 @@ bool ResponseParser::parse_mailbox_list()
  return false;
 }
 
+bool ResponseParser::parse_message_id_list()
+{
+  save_pos();
+  do
+  {
+    if (!parse_number()) // FIXME: Should be nz-number (maybe solve in semantic analysis part)
+      PARSE_FAIL
+  } while (match(" "));
+
+  PARSE_SUCCESS
+}
+
+// literal         = "{" number "}" CRLF *CHAR8
+//                     ; Number represents the number of CHAR8s
+bool ResponseParser::parse_literal()
+{
+  // FIXME: Ouch, have to accept a CRLF here
+  throw std::logic_error("Not implemented");
+}
+
+// quoted          = DQUOTE *QUOTED-CHAR DQUOTE
+bool ResponseParser::parse_quoted()
+{
+  throw std::logic_error("Not implemented");
+}
+
+// string          = quoted / literal
+bool ResponseParser::parse_string()
+{
+  p
+  if (parse_quoted())
+    PARSE_SUCCESS
+  else if (parse_literal())
+    PARSE_SUCCESS
+  else
+    PARSE_FAIL
+}
+
+// astring         = 1*ASTRING-CHAR / string
+bool ResponseParser::parse_astring()
+{
+  throw std::logic_error("Not implemented");
+}
+
+bool ResponseParser::parse_mailbox()
+{
+  if (regex_match(std::regex("^INBOX", std::regex_constants::icase)))
+  {
+
+  }
+  else if (parse_tag()) // FIXME: parse_astring has to be here
+  {
+
+  }
+  throw std::logic_error("Not implemented.");
+}
 
 // mailbox-data    =  "FLAGS" SP flag-list / "LIST" SP mailbox-list /
 //                    "LSUB" SP mailbox-list / "SEARCH" *(SP nz-number) /
@@ -316,7 +408,7 @@ bool ResponseParser::parse_mailbox_list()
 bool ResponseParser::parse_mailbox_data()
 {
   save_pos();
-  if (match("FLAGS"))
+  if (match("FLAGS")) // "FLAGS" SP flag-list
   {
     EXPECT_MATCH(" ");
     if (!parse_flag_list())
@@ -327,7 +419,7 @@ bool ResponseParser::parse_mailbox_data()
     pop_pos();
     return true;
   }
-  else if (match("LIST"))
+  else if (match("LIST")) // "LIST" SP mailbox-list
   {
     EXPECT_MATCH(" ");
     if (!parse_mailbox_list())
@@ -336,7 +428,7 @@ bool ResponseParser::parse_mailbox_data()
       return false;
     }
   }
-  else if (match("LSUB"))
+  else if (match("LSUB")) // "LSUB" SP mailbox-list
   {
     EXPECT_MATCH(" ");
     if (!parse_mailbox_list())
@@ -345,15 +437,38 @@ bool ResponseParser::parse_mailbox_data()
       return false;
     }
   }
-  else if (match("LSUB"))
+  else if (match("SEARCH")) // "SEARCH" *(SP nz-number)
   {
     EXPECT_MATCH(" ");
-    if (!parse_mailbox_list())
+    if (!parse_message_id_list())
+      PARSE_FAIL
+  }
+  else if (match("STATUS")) // "STATUS" SP mailbox SP "(" [status-att-list] ")"
+  {
+    EXPECT_MATCH(" ");
+    if (!parse_mailbox())
+      PARSE_FAIL
+    EXPECT_MATCH(" ");
+    EXPECT_MATCH("(");
+    throw std::logic_error("Not implemented.");
+    // while (parse_status-att-list()) // TODO
+    // ;
+    EXPECT_MATCH(")");
+    PARSE_SUCCESS
+  }
+  else if (parse_number()) // number SP "EXISTS" / number SP "RECENT"
+  {
+    EXPECT_MATCH(" ");
+    if (match("EXISTS"))
     {
-      restore_pos();
-      return false;
+      PARSE_SUCCESS
+    }
+    else if (match("RECENT"))
+    {
+      PARSE_SUCCESS
     }
   }
+  PARSE_FAIL
 }
 
 
@@ -375,29 +490,32 @@ bool ResponseParser::parse_response_data()
     PARSE_FAIL
   }
 
-  if (!parse_crlf())
+  if (!match_crlf())
     PARSE_FAIL
 
   PARSE_SUCCESS
 }
 
 // response = *(continue-req / response-data) response-done
+// (parsed line-by-line as) response = continue-req / response-data / response-done
 bool ResponseParser::parse_response()
 {
   save_pos();
-  while (true)
+  if (parse_continue_req())
   {
-    if (parse_continue_req())
-      continue;
-    else if (parse_response_data())
-      continue;
-    else
-      break;
+    PARSE_SUCCESS
   }
-  if (!parse_response_done())
+  else if (parse_response_data())
   {
-    restore_pos();
-    return false;
+    PARSE_SUCCESS
+  }
+  else if (parse_response_done())
+  {
+    PARSE_SUCCESS
+  }
+  else
+  {
+    PARSE_FAIL
   }
 
   pop_pos();
@@ -406,9 +524,12 @@ bool ResponseParser::parse_response()
 
 bool ResponseParser::parse()
 {
-  if(!parse_response())
+  if(parse_response())
+  {
+    return true;
+  }
+  else
   {
     return false;
   }
-  return true;
 }
