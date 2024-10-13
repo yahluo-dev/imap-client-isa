@@ -199,7 +199,7 @@ bool ResponseParser::parse_resp_text()
 }
 
 // resp-cond-bye   = "BYE" SP resp-text
-bool ResponseParser::parse_resp_cond_bye()
+bool ResponseParser::parse_resp_cond_bye(std::string &response_text)
 {
   save_pos();
   if(!match("BYE"))
@@ -207,26 +207,35 @@ bool ResponseParser::parse_resp_cond_bye()
     restore_pos();
     return false;
   }
+  size_t text_start = curr_pos;
   if (!parse_resp_text())
   {
     restore_pos();
     return false;
   }
+  response_text = data.substr(text_start, curr_pos-text_start);
   pop_pos();
   return true;
 }
 
 // resp-cond-state = ("OK" / "NO" / "BAD") SP resp-text
 //                     ; Status condition
-bool ResponseParser::parse_resp_cond_state()
+bool ResponseParser::parse_resp_cond_state(ResponseType &response_type, std::string &response_text)
 {
   save_pos();
+
   if (match("OK"))
-  {}
+  {
+    response_type = ResponseType::OK;
+  }
   else if (match("NO"))
-  {}
+  {
+    response_type = ResponseType::NO;
+  }
   else if (match("BAD"))
-  {}
+  {
+    response_type = ResponseType::BAD;
+  }
   else
   {
     restore_pos();
@@ -239,44 +248,56 @@ bool ResponseParser::parse_resp_cond_state()
     return false;
   }
 
+  size_t text_start = curr_pos;
   if (!parse_resp_text())
   {
     restore_pos();
     return false;
   }
+  response_text = data.substr(text_start, curr_pos-text_start);
+
 
   pop_pos();
   return true;
 }
 
 // response-tagged = tag SP resp-cond-state CRLF
-bool ResponseParser::parse_response_tagged()
+bool ResponseParser::parse_response_tagged(std::shared_ptr<Response> &parsed_response)
 {
   save_pos();
+  size_t tag_start = curr_pos;
   if (!parse_tag())
   {
     restore_pos();
     return false;
   }
+  std::string tag = data.substr(tag_start, curr_pos-tag_start);
+  ResponseType response_type;
+  std::string response_text;
+
+
   if (!match(" "))
   {
     restore_pos();
     return false;
   }
-  if (!parse_resp_cond_state())
+  if (!parse_resp_cond_state(response_type, response_text))
   {
     restore_pos();
     return false;
   }
   if (!match_crlf())
     PARSE_FAIL
+
+  parsed_response = std::make_shared<StatusResponse>(response_type, tag, response_text);
+
   pop_pos();
   return true;
 }
 
 // response-fatal  = "*" SP resp-cond-bye CRLF
 //                     ; Server closes connection immediately
-bool ResponseParser::parse_response_fatal()
+bool ResponseParser::parse_response_fatal(std::shared_ptr<Response> &parsed_response)
 {
   save_pos();
   if (!match("*"))
@@ -290,26 +311,28 @@ bool ResponseParser::parse_response_fatal()
     restore_pos();
     return false;
   }
-  if (!parse_resp_cond_bye())
+  std::string bye_text;
+  if (!parse_resp_cond_bye(bye_text))
   {
     restore_pos();
     return false;
   }
+  parsed_response = std::make_shared<StatusResponse>(ResponseType::BYE, "", bye_text);
 
   pop_pos();
   return true;
 }
 
 // response-done   = response-tagged / response-fatal
-bool ResponseParser::parse_response_done()
+bool ResponseParser::parse_response_done(std::shared_ptr<Response> &parsed_response)
 {
   save_pos();
-  if (parse_response_tagged())
+  if (parse_response_tagged(parsed_response))
   {
     pop_pos();
     return true;
   }
-  else if (parse_response_fatal())
+  else if (parse_response_fatal(parsed_response))
   {
     pop_pos();
     return true;
@@ -479,16 +502,25 @@ bool ResponseParser::parse_mailbox_data()
 
 // response-data   = "*" SP (resp-cond-state / resp-cond-bye /
 //                   mailbox-data / message-data / capability-data) CRLF
-bool ResponseParser::parse_response_data()
+bool ResponseParser::parse_response_data(std::shared_ptr<Response> &parsed_response)
 {
   save_pos();
   if (!match("*"))
     PARSE_FAIL
   if (!match(" "))
     PARSE_FAIL
-  if (parse_resp_cond_state()){}
-  else if (parse_resp_cond_bye()){}
-  else if (parse_mailbox_data()){}
+  ResponseType response_type;
+  std::string response_text;
+  if (parse_resp_cond_state(response_type, response_text))
+  {
+    parsed_response = std::make_shared<StatusResponse>(response_type, "", response_text); // Untagged status response
+  }
+  else if (parse_resp_cond_bye(response_text))
+  {
+  }
+  else if (parse_mailbox_data())
+  {
+  }
   // else if (parse_message_data()){}
   // else if (parse_capability_data()){}
   else
@@ -504,18 +536,18 @@ bool ResponseParser::parse_response_data()
 
 // response = *(continue-req / response-data) response-done
 // (parsed line-by-line as) response = continue-req / response-data / response-done
-bool ResponseParser::parse_response()
+bool ResponseParser::parse_response(std::shared_ptr<Response> &parsed_response)
 {
   save_pos();
   if (parse_continue_req())
   {
     PARSE_SUCCESS
   }
-  else if (parse_response_data())
+  else if (parse_response_data(parsed_response))
   {
     PARSE_SUCCESS
   }
-  else if (parse_response_done())
+  else if (parse_response_done(parsed_response))
   {
     PARSE_SUCCESS
   }
@@ -552,18 +584,20 @@ bool ResponseParser::parse_greeting()
   PARSE_SUCCESS
 }
 
-bool ResponseParser::parse()
+std::shared_ptr<Response> ResponseParser::parse()
 {
-  if(parse_response())
+  std::shared_ptr<Response> parsed_response;
+  if(parse_response(parsed_response))
   {
-    return true;
+    return parsed_response;
   }
   else if(parse_greeting())
   {
-    return true;
+    return parsed_response;
   }
   else
   {
-    return false;
+    throw std::runtime_error("Didn't understand the server's response!");
   }
+  return parsed_response;
 }
