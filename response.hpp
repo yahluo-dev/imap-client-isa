@@ -23,7 +23,7 @@ class Response
   response_type_t type;
   std::string tag;
   public:
-  Response(std::string _tag);
+  Response(response_type_t _type, std::string _tag);
   virtual response_type_t get_type();
   virtual std::string get_tag();
   virtual ~Response() = default;
@@ -34,7 +34,7 @@ class TextResponse : public Response // OkResponse, NoResponse, BadResponse, Pre
   private:
   std::string text;
   public:
-  TextResponse(std::string text);
+  TextResponse(response_type_t _type, std::string _tag, std::string text);
   std::string get_text();
 };
 

@@ -82,7 +82,7 @@ bool ResponseParser::parse_number()
 bool ResponseParser::parse_tag()
 {
   bool success = false;
-  while (std::isalnum(data[curr_pos])) // FIXME: This is not in line with grammar
+  while (std::isalnum(data[curr_pos]))
   {
     curr_pos += 1;
     success = true;
@@ -156,6 +156,21 @@ bool ResponseParser::parse_resp_text_code()
   else if (match("READ-ONLY") || match("READ-WRITE"))
   {
     PARSE_SUCCESS
+  }
+  else // No idea what this is, so skip it.
+  {
+    while(curr_pos < data.size())
+    {
+      if(data[curr_pos] == ']')
+        break;
+      else
+        curr_pos++;
+    }
+    if (curr_pos < data.size())
+      if (data[curr_pos] == ']')
+      {
+        PARSE_SUCCESS
+      }
   }
   PARSE_FAIL
   // TODO
@@ -356,14 +371,6 @@ bool ResponseParser::parse_message_id_list()
   PARSE_SUCCESS
 }
 
-// literal         = "{" number "}" CRLF *CHAR8
-//                     ; Number represents the number of CHAR8s
-bool ResponseParser::parse_literal()
-{
-  // FIXME: Ouch, have to accept a CRLF here
-  throw std::logic_error("Not implemented");
-}
-
 // quoted          = DQUOTE *QUOTED-CHAR DQUOTE
 bool ResponseParser::parse_quoted()
 {
@@ -373,10 +380,7 @@ bool ResponseParser::parse_quoted()
 // string          = quoted / literal
 bool ResponseParser::parse_string()
 {
-  p
   if (parse_quoted())
-    PARSE_SUCCESS
-  else if (parse_literal())
     PARSE_SUCCESS
   else
     PARSE_FAIL
@@ -472,6 +476,7 @@ bool ResponseParser::parse_mailbox_data()
 }
 
 
+
 // response-data   = "*" SP (resp-cond-state / resp-cond-bye /
 //                   mailbox-data / message-data / capability-data) CRLF
 bool ResponseParser::parse_response_data()
@@ -484,6 +489,7 @@ bool ResponseParser::parse_response_data()
   if (parse_resp_cond_state()){}
   else if (parse_resp_cond_bye()){}
   else if (parse_mailbox_data()){}
+  // else if (parse_message_data()){}
   // else if (parse_capability_data()){}
   else
   {
@@ -522,9 +528,37 @@ bool ResponseParser::parse_response()
   return true;
 }
 
+
+bool ResponseParser::parse_resp_cond_auth()
+{
+  save_pos();
+  if (!match("OK") && !match("PREAUTH"))
+    PARSE_FAIL;
+  EXPECT_MATCH(" ");
+  if (!parse_resp_text())
+    PARSE_FAIL
+  PARSE_SUCCESS
+}
+
+bool ResponseParser::parse_greeting()
+{
+  save_pos();
+  EXPECT_MATCH("*");
+  EXPECT_MATCH(" ");
+  if (!parse_resp_cond_auth())
+  {
+    PARSE_FAIL
+  }
+  PARSE_SUCCESS
+}
+
 bool ResponseParser::parse()
 {
   if(parse_response())
+  {
+    return true;
+  }
+  else if(parse_greeting())
   {
     return true;
   }

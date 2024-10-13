@@ -17,8 +17,8 @@ std::string Response::get_tag()
   throw std::logic_error("get_tag virtual method called!");
 }
 
-TextResponse::TextResponse(std::string _text)
-  : text(_text)
+TextResponse::TextResponse(response_type_t _type, std::string _tag, std::string _text)
+  : text(_text), Response(_type, _tag)
 {}
 
 std::string TextResponse::get_text()

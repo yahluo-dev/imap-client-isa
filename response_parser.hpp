@@ -3,6 +3,7 @@
 
 #include <string>
 #include <stack>
+#include <regex>
 #include <memory>
 
 #include "response.hpp"
@@ -24,6 +25,8 @@ class ResponseParser
   bool match(std::string expected);
   bool regex_match(std::regex expected);
   bool parse_text();
+  bool parse_resp_cond_auth();
+  bool parse_greeting();
   bool parse_text_char();
   bool parse_resp_text();
   bool parse_mailbox();
