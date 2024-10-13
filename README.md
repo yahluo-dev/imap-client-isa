@@ -14,7 +14,15 @@
 
 ## Architecture
 
-**TODO**
+The program is written in C/C++.
+
+### Parser
+
+The parser used in the client is a *handwritten backtracking lexerless recursive-descent parser*, which was written according to the formal syntax specification in [RFC3501]. The response language accepted by the parser is a subset of the language of valid responses in [RFC3501]. (**TODO: make sure I don't accept any erroneous responses so it's really a subset**)
+
+Even though backtracking is known to make the parser less effecient due to possible rescanning, and hence memoization is sometimes used, I did not implement it in my parser because the implemented grammar is non-recursive and comparatively simple, so the amount of backtracking that can happen is limited.
+
+**TODO: diagram here and some details**
 
 ## Requirements
 
@@ -36,8 +44,9 @@
 imapcl SERVER [-p port] [-T [-c certfile] [-C certaddr]] [-n] [-h] -a auth_file [-b MAILBOX] -o out_dir
 ```
 
-| **-p** PORT      | Port to connect to. Default is 993 for IMAPS and 143 for plain IMAP. |
+| Option           | Description                                                          |
 |------------------|:---------------------------------------------------------------------|
+| **-p** PORT      | Port to connect to. Default is 993 for IMAPS and 143 for plain IMAP. |
 | **-T**           | Enables encryption (use IMAPS)                                       |
 | **-c** FILE      | Specify certificate file                                             |
 | **-C** DIR       | Specify certificate directory (default /etc/ssl/certs)               |
@@ -49,4 +58,6 @@ imapcl SERVER [-p port] [-T [-c certfile] [-C certaddr]] [-n] [-h] -a auth_file 
 
 
 **TODO**
+
+## Bibliography
 
