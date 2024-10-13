@@ -46,7 +46,7 @@ response_factory.o: response_factory.cpp
 response_parser.o: response_parser.cpp
 	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
-$(TESTEXE): test/test_main.o test/make_tcp.o command.o test/parse_response.o response_parser.o
+$(TESTEXE): test/test_main.o test/make_tcp.o command.o test/parse_response.o response_parser.o response.o
 	$(CXX) $(CXXFLAGS) -lgtest $^ -o $@
 
 test/test_main.o: test/test_main.cpp
