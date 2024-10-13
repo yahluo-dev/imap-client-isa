@@ -2,12 +2,12 @@
 #include "response.hpp"
 
 
-Response::Response(std::string _tag)
-  : tag(_tag)
+Response::Response(ResponseType _type)
+: type(_type)
 {
 }
 
-response_type_t Response::get_type()
+ResponseType Response::get_type()
 {
   throw std::logic_error("get_type virtual method called!");
 }
@@ -17,18 +17,25 @@ std::string Response::get_tag()
   throw std::logic_error("get_tag virtual method called!");
 }
 
-TextResponse::TextResponse(response_type_t _type, std::string _tag, std::string _text)
-  : text(_text), Response(_type, _tag)
+StatusResponse::StatusResponse(ResponseType _type, std::string _tag, std::string _text)
+  : text(_text), Response(_type)
 {}
 
-std::string TextResponse::get_text()
+ResponseType StatusResponse::get_type()
+{
+  return type;
+}
+
+std::string StatusResponse::get_tag()
+{
+  return tag;
+}
+
+
+std::string StatusResponse::get_text()
 {
   return text;
 }
-
-SearchResponse::SearchResponse(std::vector<uint32_t> _seq_numbers)
-  : seq_numbers(_seq_numbers)
-{}
 
 std::vector<uint32_t> SearchResponse::get_seq_numbers()
 {
@@ -36,6 +43,7 @@ std::vector<uint32_t> SearchResponse::get_seq_numbers()
 }
 
 FetchResponse::FetchResponse(std::string _from, std::string _to, std::string _subject, std::string _message_id, std::string _body)
+  : Response(ResponseType::FETCH)
 {
   message_data = new IMFMessage(_from, _to, _subject, _message_id, _body);
 }

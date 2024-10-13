@@ -6,36 +6,38 @@
 #include <stdint.h>
 #include "message.hpp"
 
-enum response_type_t
+enum class ResponseType
 {
-  RESPONSE_OK,
-  RESPONSE_NO,
-  RESPONSE_BAD,
-  RESPONSE_PREAUTH,
-  RESPONSE_BYE,
-  RESPONSE_SEARCH,
-  RESPONSE_FETCH,
+  OK,
+  NO,
+  BAD,
+  PREAUTH,
+  BYE,
+  SEARCH,
+  FETCH,
 };
 
 class Response
 {
   protected:
-  response_type_t type;
-  std::string tag;
+  ResponseType type;
   public:
-  Response(response_type_t _type, std::string _tag);
-  virtual response_type_t get_type();
+  Response(ResponseType _type);
+  virtual ResponseType get_type();
   virtual std::string get_tag();
   virtual ~Response() = default;
 };
 
-class TextResponse : public Response // OkResponse, NoResponse, BadResponse, PreauthResponse, ByeResponse
+class StatusResponse : public Response // OkResponse, NoResponse, BadResponse, PreauthResponse, ByeResponse
 {
   private:
-  std::string text;
   public:
-  TextResponse(response_type_t _type, std::string _tag, std::string text);
+  std::string text;
+  std::string tag;
+  StatusResponse(ResponseType _type, std::string _tag, std::string text);
   std::string get_text();
+  ResponseType get_type();
+  std::string get_tag();
 };
 
 class SearchResponse : public Response
@@ -43,7 +45,9 @@ class SearchResponse : public Response
   private:
   std::vector<uint32_t> seq_numbers;
   public:
-  SearchResponse(std::vector<uint32_t> _seq_numbers);
+  SearchResponse(std::vector<uint32_t> _seq_numbers)
+    : Response(ResponseType::SEARCH), seq_numbers(_seq_numbers)
+  {};
   std::vector<uint32_t> get_seq_numbers();
 };
 
