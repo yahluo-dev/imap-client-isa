@@ -1,7 +1,8 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-const char *USAGE = "imapcl SERVER [-p port] [-T [-c certfile] [-C certaddr]] [-n] [-h] -a auth_file [-b MAILBOX] -o out_dir\n"
+const char *USAGE = "Usage:\n"
+                    "imapcl SERVER [-p port] [-T [-c certfile] [-C certaddr]] [-n] [-h] -a auth_file [-b MAILBOX] -o out_dir\n"
                     "\t-p PORT\t Port to connect to. Default is 993 for IMAPS and 143 for plain IMAP.\n"
                     "\t-T\t Enables encryption (use IMAPS)\n"
                     "\t-c FILE\t Specify certificate file\n"

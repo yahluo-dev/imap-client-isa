@@ -62,11 +62,6 @@ int main(int argc, char *argv[])
   std::string output_dir;
   std::string auth_file;
 
-  if (argc < 2)
-  {
-    std::cerr << "Hostname must be supplied." << std::endl;
-    return 1;
-  }
 
 
   while (-1 != (opt_char = getopt(argc, argv, "p:Tc:C:nha:b:o:")))
@@ -124,13 +119,26 @@ int main(int argc, char *argv[])
         cert_file = optarg;
         break;
       }
+      case 'h':
+      {
+        std::cerr << USAGE << std::endl;
+        return 0;
+        break;
+      }
       default:
       {
         std::cerr << "Invalid Usage or not implemented." << std::endl;
         std::cerr << USAGE << std::endl;
+        return 1;
         break;
       }
     }
+  }
+
+  if (optind <= argc)
+  {
+    std::cerr << "Hostname must be supplied." << std::endl;
+    return 1;
   }
 
   server_hostname = std::string(argv[optind]);
