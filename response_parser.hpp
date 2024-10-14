@@ -33,20 +33,20 @@ class ResponseParser
   bool parse_resp_text_code();
   bool match_crlf();
   bool parse_tag();
-  bool parse_response(std::shared_ptr<Response> &parsed_response);
+  bool parse_response(std::unique_ptr<Response> &parsed_response);
   bool parse_number();
   bool parse_continue_req();
-  bool parse_response_data(std::shared_ptr<Response> &parsed_response);
-  bool parse_response_done(std::shared_ptr<Response> &parsed_response);
-  bool parse_response_fatal(std::shared_ptr<Response> &parsed_response);
-  bool parse_response_tagged(std::shared_ptr<Response> &parsed_response);
+  bool parse_response_data(std::unique_ptr<Response> &parsed_response);
+  bool parse_response_done(std::unique_ptr<Response> &parsed_response);
+  bool parse_response_fatal(std::unique_ptr<Response> &parsed_response);
+  bool parse_response_tagged(std::unique_ptr<Response> &parsed_response);
   bool parse_response_cond_auth();
   bool parse_resp_cond_state(ResponseType &response_type, std::string &response_text);
   bool parse_resp_cond_bye(std::string &bye_text);
   bool parse_mailbox_data();
   bool parse_flag_list();
   bool parse_mailbox_list();
-  std::shared_ptr<Response> parse();
+  std::unique_ptr<Response> parse();
 
   bool parse_astring();
   bool parse_string();

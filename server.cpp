@@ -9,6 +9,7 @@
 
 #include "server.hpp"
 #include "response.hpp"
+#include "response_parser.hpp"
 
 Server::Server(const std::string hostname, const std::string port)
 {
@@ -57,13 +58,14 @@ std::unique_ptr<Response> Server::receive()
 {
   char buffer[2048];
   std::string response_data;
-
   ssize_t bytes_recvd = recv(client_socket, &buffer, 2048, 0);
   response_data = std::string(buffer, bytes_recvd);
 
-  std::unique_ptr<TextResponse> response = std::make_unique<TextResponse>(response_data); // TODO
+  ResponseParser response_parser = ResponseParser(response_data);
 
-  return std::move(response);
+  std::unique_ptr<Response> response = response_parser.parse();
+
+  return response;
 }
 
 TLSServer::TLSServer(const std::string hostname, const std::string port)

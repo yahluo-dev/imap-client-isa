@@ -262,7 +262,7 @@ bool ResponseParser::parse_resp_cond_state(ResponseType &response_type, std::str
 }
 
 // response-tagged = tag SP resp-cond-state CRLF
-bool ResponseParser::parse_response_tagged(std::shared_ptr<Response> &parsed_response)
+bool ResponseParser::parse_response_tagged(std::unique_ptr<Response> &parsed_response)
 {
   save_pos();
   size_t tag_start = curr_pos;
@@ -289,7 +289,7 @@ bool ResponseParser::parse_response_tagged(std::shared_ptr<Response> &parsed_res
   if (!match_crlf())
     PARSE_FAIL
 
-  parsed_response = std::make_shared<StatusResponse>(response_type, tag, response_text);
+  parsed_response = std::make_unique<StatusResponse>(response_type, tag, response_text);
 
   pop_pos();
   return true;
@@ -297,7 +297,7 @@ bool ResponseParser::parse_response_tagged(std::shared_ptr<Response> &parsed_res
 
 // response-fatal  = "*" SP resp-cond-bye CRLF
 //                     ; Server closes connection immediately
-bool ResponseParser::parse_response_fatal(std::shared_ptr<Response> &parsed_response)
+bool ResponseParser::parse_response_fatal(std::unique_ptr<Response> &parsed_response)
 {
   save_pos();
   if (!match("*"))
@@ -317,14 +317,14 @@ bool ResponseParser::parse_response_fatal(std::shared_ptr<Response> &parsed_resp
     restore_pos();
     return false;
   }
-  parsed_response = std::make_shared<StatusResponse>(ResponseType::BYE, "", bye_text);
+  parsed_response = std::make_unique<StatusResponse>(ResponseType::BYE, "", bye_text);
 
   pop_pos();
   return true;
 }
 
 // response-done   = response-tagged / response-fatal
-bool ResponseParser::parse_response_done(std::shared_ptr<Response> &parsed_response)
+bool ResponseParser::parse_response_done(std::unique_ptr<Response> &parsed_response)
 {
   save_pos();
   if (parse_response_tagged(parsed_response))
@@ -502,7 +502,7 @@ bool ResponseParser::parse_mailbox_data()
 
 // response-data   = "*" SP (resp-cond-state / resp-cond-bye /
 //                   mailbox-data / message-data / capability-data) CRLF
-bool ResponseParser::parse_response_data(std::shared_ptr<Response> &parsed_response)
+bool ResponseParser::parse_response_data(std::unique_ptr<Response> &parsed_response)
 {
   save_pos();
   if (!match("*"))
@@ -513,7 +513,7 @@ bool ResponseParser::parse_response_data(std::shared_ptr<Response> &parsed_respo
   std::string response_text;
   if (parse_resp_cond_state(response_type, response_text))
   {
-    parsed_response = std::make_shared<StatusResponse>(response_type, "", response_text); // Untagged status response
+    parsed_response = std::make_unique<StatusResponse>(response_type, "", response_text); // Untagged status response
   }
   else if (parse_resp_cond_bye(response_text))
   {
@@ -536,7 +536,7 @@ bool ResponseParser::parse_response_data(std::shared_ptr<Response> &parsed_respo
 
 // response = *(continue-req / response-data) response-done
 // (parsed line-by-line as) response = continue-req / response-data / response-done
-bool ResponseParser::parse_response(std::shared_ptr<Response> &parsed_response)
+bool ResponseParser::parse_response(std::unique_ptr<Response> &parsed_response)
 {
   save_pos();
   if (parse_continue_req())
@@ -584,9 +584,9 @@ bool ResponseParser::parse_greeting()
   PARSE_SUCCESS
 }
 
-std::shared_ptr<Response> ResponseParser::parse()
+std::unique_ptr<Response> ResponseParser::parse()
 {
-  std::shared_ptr<Response> parsed_response;
+  std::unique_ptr<Response> parsed_response;
   if(parse_response(parsed_response))
   {
     return parsed_response;
