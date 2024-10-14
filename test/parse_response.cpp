@@ -55,7 +55,7 @@ TEST(ResponseParserParseTests, GreetingNoError)
 
 TEST(ResponseParserParseTests, LoginParseCorrect)
 {
-  std::unique_ptr<Response> expected = std::make_unique<StatusResponse>(ResponseType::OK, "A001", "OK LOGIN completed.");
+  std::unique_ptr<Response> expected = std::make_unique<StatusResponse>(ResponseType::OK, "A001", "LOGIN completed.");
   std::string test_data = "A001 OK LOGIN completed.\r\n";
 
   ResponseParser parser = ResponseParser(test_data);
@@ -66,4 +66,21 @@ TEST(ResponseParserParseTests, LoginParseCorrect)
 
   ASSERT_EQ(expected->get_tag(), result->get_tag());
   ASSERT_EQ(expected->get_type(), result->get_type());
+  ASSERT_EQ(expected->get_text(), result->get_text());
+}
+
+TEST(ResponseParserParseTests, LoginParseCorrect2)
+{
+  std::unique_ptr<Response> expected = std::make_unique<StatusResponse>(ResponseType::OK, "a001", "[CAPABILITY IMAP4rev1 SASL-IR LOGIN-REFERRALS ID ENABLE IDLE SORT SORT=DISPLAY THREAD=REFERENCES THREAD=REFS THREAD=ORDEREDSUBJECT MULTIAPPEND URL-PARTIAL CATENATE UNSELECT CHILDREN NAMESPACE UIDPLUS LIST-EXTENDED I18NLEVEL=1 CONDSTORE QRESYNC ESEARCH ESORT SEARCHRES WITHIN CONTEXT=SEARCH LIST-STATUS BINARY MOVE SNIPPET=FUZZY PREVIEW=FUZZY PREVIEW STATUS=SIZE SAVEDATE LITERAL+ NOTIFY] Logged in");
+  std::string test_data = "a001 OK [CAPABILITY IMAP4rev1 SASL-IR LOGIN-REFERRALS ID ENABLE IDLE SORT SORT=DISPLAY THREAD=REFERENCES THREAD=REFS THREAD=ORDEREDSUBJECT MULTIAPPEND URL-PARTIAL CATENATE UNSELECT CHILDREN NAMESPACE UIDPLUS LIST-EXTENDED I18NLEVEL=1 CONDSTORE QRESYNC ESEARCH ESORT SEARCHRES WITHIN CONTEXT=SEARCH LIST-STATUS BINARY MOVE SNIPPET=FUZZY PREVIEW=FUZZY PREVIEW STATUS=SIZE SAVEDATE LITERAL+ NOTIFY] Logged in\r\n";
+
+  ResponseParser parser = ResponseParser(test_data);
+
+  std::unique_ptr<Response> result;
+
+  (result = parser.parse());
+
+  ASSERT_EQ(expected->get_tag(), result->get_tag());
+  ASSERT_EQ(expected->get_type(), result->get_type());
+  ASSERT_EQ(expected->get_text(), result->get_text());
 }
