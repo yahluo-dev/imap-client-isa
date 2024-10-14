@@ -22,7 +22,7 @@ test: CXXFLAGS += $(test_flags)
 test: $(TESTEXE)
 test: ./$(TESTEXE)
 
-$(EXE): main.o command.o response.o response_factory.o session.o server.o
+$(EXE): main.o command.o response.o response_factory.o session.o server.o response_parser.o
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
 main.o: main.cpp
