@@ -59,9 +59,9 @@ class SearchResponse : public Response
 class FetchResponse : public Response
 {
   private:
-  IMFMessage *message_data; // FIXME: What if we only want to fetch headers?
+  std::string message_data;
   public:
-  FetchResponse(std::string from, std::string to, std::string subject, std::string message_id, std::string body);
+  FetchResponse(std::string _message_data);
   std::string get_message_data();
 };
 

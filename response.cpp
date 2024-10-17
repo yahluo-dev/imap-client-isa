@@ -62,11 +62,9 @@ std::vector<uint32_t> SearchResponse::get_seq_numbers()
   return seq_numbers;
 }
 
-FetchResponse::FetchResponse(std::string _from, std::string _to, std::string _subject, std::string _message_id, std::string _body)
-  : Response(ResponseType::FETCH)
-{
-  message_data = new IMFMessage(_from, _to, _subject, _message_id, _body);
-}
+FetchResponse::FetchResponse(std::string _message_data)
+  : Response(ResponseType::FETCH), message_data(_message_data)
+{}
 
 std::string FetchResponse::get_message_data()
 {
