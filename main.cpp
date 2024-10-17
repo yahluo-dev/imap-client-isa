@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
     }
   }
 
-  if (optind <= argc)
+  if (optind == argc)
   {
     std::cerr << "Hostname must be supplied." << std::endl;
     return 1;
