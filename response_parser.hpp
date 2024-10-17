@@ -52,15 +52,14 @@ class ResponseParser
   bool parse_string(std::string &parsed_string);
   bool parse_nstring(std::string &parsed_nstring);
   bool parse_literal(std::string &parsed_literal);
-  bool parse_msg_att();
+  bool parse_msg_att(std::string &message_contents);
   bool parse_msg_att_dynamic();
 
   bool parse_astring();
-  bool parse_string();
   bool parse_quoted();
 
   bool parse_section();
-  bool parse_msg_att_static();
+  bool parse_msg_att_static(std::string &message_contents);
 };
 
 #endif // RESPONSE_PARSER_H_

@@ -426,15 +426,6 @@ bool ResponseParser::parse_quoted()
   throw std::logic_error("Not implemented");
 }
 
-// string          = quoted / literal
-bool ResponseParser::parse_string()
-{
-  if (parse_quoted())
-    PARSE_SUCCESS
-  else
-    PARSE_FAIL
-}
-
 // astring         = 1*ASTRING-CHAR / string
 bool ResponseParser::parse_astring()
 {
@@ -574,7 +565,7 @@ bool ResponseParser::parse_section()
 //                   "BODY" section ["<" number ">"] SP nstring /
 //                   "UID" SP uniqueid
 //                     ; MUST NOT change for a message
-bool ResponseParser::parse_msg_att_static()
+bool ResponseParser::parse_msg_att_static(std::string &message_contents)
 {
   save_pos();
   if (match("ENVELOPE"))
@@ -586,6 +577,7 @@ bool ResponseParser::parse_msg_att_static()
   else if (match("RFC822.SIZE"))
     throw std::logic_error("Not implemented");
   else if (match("BODY"))
+  {
     if (match("STRUCTURE"))
     {
       throw std::logic_error("Not implemented");
@@ -602,13 +594,12 @@ bool ResponseParser::parse_msg_att_static()
       }
       EXPECT_MATCH(" ");
 
-      std::string message;
-      if (!parse_nstring(message))
+      if (!parse_nstring(message_contents))
       {
         PARSE_FAIL
       }
-
     }
+  }
   else if (match("UID"))
     throw std::logic_error("Not implemented");
   PARSE_FAIL
@@ -663,12 +654,13 @@ bool ResponseParser::parse_nstring(std::string &parsed_nstring)
 
 // msg-att         = "(" (msg-att-dynamic / msg-att-static)
 //                    *(SP (msg-att-dynamic / msg-att-static)) ")"
-bool ResponseParser::parse_msg_att()
+bool ResponseParser::parse_msg_att(std::string &message_contents)
 {
   save_pos();
+
   EXPECT_MATCH("(");
   if (parse_msg_att_dynamic()){}
-  else if (parse_msg_att_static()){}
+  else if (parse_msg_att_static(message_contents)){}
   else
   {
     PARSE_FAIL
@@ -693,12 +685,13 @@ bool ResponseParser::parse_message_data(std::unique_ptr<Response> &parsed_respon
     throw std::logic_error("Not implemented");
   else if (match("FETCH"))
   {
-    //parsed_response = std::make_unique<FetchResponse>();
+    std::string message_contents;
     EXPECT_MATCH(" ");
-    if (!parse_msg_att())
+    if (!parse_msg_att(message_contents))
     {
       PARSE_FAIL
     }
+    parsed_response = std::make_unique<FetchResponse>(message_contents);
   }
   PARSE_SUCCESS
 }
