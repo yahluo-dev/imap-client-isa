@@ -19,38 +19,6 @@ TEST(ResponseParserParseTests, LoginNoError)
   ASSERT_NO_THROW(parser.parse());
 }
 
-TEST(ResponseParserParseTests, SelectResponseParseCorrect)
-{
-  std::vector<std::unique_ptr<Response>> expected;
-
-  expected.push_back(std::make_unique<SingleNumberResponse>(ResponseType::EXISTS, 5));
-  expected.push_back(std::make_unique<SingleNumberResponse>(ResponseType::RECENT, 0));
-  expected.push_back(std::make_unique<StatusResponse>(ResponseType::OK, "", "[UNSEEN 2] Message 2 is the first unseen message"));
-  expected.push_back(std::make_unique<StatusResponse>(ResponseType::OK, "A003", "[READ-WRITE] SELECT completed."));
-
-  std::vector<std::string> test_data = {"* 5 EXISTS\r\n",
-                          "* 0 RECENT\r\n",
-                          "* OK [UNSEEN 2] Message 2 is the first unseen message\r\n",
-                          "A003 OK [READ-WRITE] SELECT completed.\r\n"};
-
-  std::shared_ptr<Response> result;
-
-  ResponseParser parser = ResponseParser(test_data[0]);
-  ASSERT_NO_THROW((result = parser.parse()));
-  ASSERT_EQ(expected[0]->get_tag(), result->get_tag());
-
-  parser = ResponseParser(test_data[1]);
-  ASSERT_NO_THROW((result = parser.parse()));
-  ASSERT_EQ(expected[1]->get_tag(), result->get_tag());
-
-  parser = ResponseParser(test_data[2]);
-  ASSERT_NO_THROW((result = parser.parse()));
-  ASSERT_EQ(expected[2]->get_tag(), result->get_tag());
-
-  parser = ResponseParser(test_data[3]);
-  ASSERT_NO_THROW((result = parser.parse()));
-  ASSERT_EQ(expected[3]->get_tag(), result->get_tag());
-}
 
 
 TEST(ResponseParserParseTests, GreetingParseCorrect)
@@ -101,3 +69,35 @@ TEST(ResponseParserParseTests, LoginParseCorrect2)
   ASSERT_EQ(expected->get_text(), result->get_text());
 }
 
+TEST(ResponseParserParseTests, SelectResponseParseCorrect)
+{
+  std::vector<std::unique_ptr<Response>> expected;
+
+  expected.push_back(std::make_unique<SingleNumberResponse>(ResponseType::EXISTS, 5));
+  expected.push_back(std::make_unique<SingleNumberResponse>(ResponseType::RECENT, 0));
+  expected.push_back(std::make_unique<StatusResponse>(ResponseType::OK, "", "[UNSEEN 2] Message 2 is the first unseen message"));
+  expected.push_back(std::make_unique<StatusResponse>(ResponseType::OK, "A003", "[READ-WRITE] SELECT completed."));
+
+  std::vector<std::string> test_data = {"* 5 EXISTS\r\n",
+                          "* 0 RECENT\r\n",
+                          "* OK [UNSEEN 2] Message 2 is the first unseen message\r\n",
+                          "A003 OK [READ-WRITE] SELECT completed.\r\n"};
+
+  std::unique_ptr<Response> result;
+
+  ResponseParser parser = ResponseParser(test_data[0]);
+  ASSERT_NO_THROW((result = parser.parse()));
+  ASSERT_EQ(expected[0]->get_tag(), result->get_tag());
+
+  parser = ResponseParser(test_data[1]);
+  ASSERT_NO_THROW((result = parser.parse()));
+  ASSERT_EQ(expected[1]->get_tag(), result->get_tag());
+
+  parser = ResponseParser(test_data[2]);
+  ASSERT_NO_THROW((result = parser.parse()));
+  ASSERT_EQ(expected[2]->get_tag(), result->get_tag());
+
+  parser = ResponseParser(test_data[3]);
+  ASSERT_NO_THROW((result = parser.parse()));
+  ASSERT_EQ(expected[3]->get_tag(), result->get_tag());
+}
