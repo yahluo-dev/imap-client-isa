@@ -3,10 +3,20 @@
 #include <format>
 #include <regex>
 #include <stdio.h>
+#include <assert.h>
 #include "response_parser.hpp"
 
-#define PARSE_FAIL {std::cout << "DEBUG :: " << __func__ << "() failed on char " << curr_pos << "("<< data[curr_pos] << ")" <<std::endl ;restore_pos();return false;}
-#define PARSE_SUCCESS {pop_pos();return true;}
+#define PARSE_FAIL {                                                    \
+    for(int i = 0; i < pos_stack.size();i++)std::cout<<"\t";            \
+    std::cout << "DEBUG :: " << __func__ << "() failed on char " << curr_pos << "("<< data[curr_pos] << ")" <<std::endl; \
+    restore_pos();return false;                                         \
+}
+#define PARSE_SUCCESS {                                     \
+    for(int i = 0; i < pos_stack.size();i++)std::cout<<"\t";            \
+    std::cout << "DEBUG :: " << __func__ << "() succeeded on char " << curr_pos << "("<< data[curr_pos] << ")" <<std::endl; \
+    pop_pos();                                                          \
+    return true;                                                        \
+}
 
 #define EXPECT_MATCH(s) {if (!match(s)){restore_pos();return false;}}
 
@@ -63,12 +73,15 @@ bool ResponseParser::match_crlf()
   return true;
 }
 
-bool ResponseParser::parse_number()
+bool ResponseParser::parse_number(int &number)
 {
   save_pos();
   bool success = false;
+  number = 0;
   while (std::isdigit(data[curr_pos]))
   {
+    number *= 10;
+    number += data[curr_pos]-'0';
     curr_pos += 1;
     success = true;
   }
@@ -148,8 +161,9 @@ bool ResponseParser::parse_resp_text_code()
     PARSE_SUCCESS
   else if (match("UNSEEN"))
   {
+    int number;
     EXPECT_MATCH(" ");
-    if (!parse_number())
+    if (!parse_number(number))
       PARSE_FAIL
     PARSE_SUCCESS
   }
@@ -199,7 +213,7 @@ bool ResponseParser::parse_resp_text()
 }
 
 // resp-cond-bye   = "BYE" SP resp-text
-bool ResponseParser::parse_resp_cond_bye(std::string &response_text)
+bool ResponseParser::parse_resp_cond_bye(std::unique_ptr<Response> &parsed_response)
 {
   save_pos();
   if(!match("BYE"))
@@ -213,16 +227,20 @@ bool ResponseParser::parse_resp_cond_bye(std::string &response_text)
     restore_pos();
     return false;
   }
-  response_text = data.substr(text_start, curr_pos-text_start);
+  std::string response_text = data.substr(text_start, curr_pos-text_start);
+  parsed_response = std::make_unique<StatusResponse>(ResponseType::BYE, "", response_text);
+
   pop_pos();
   return true;
 }
 
 // resp-cond-state = ("OK" / "NO" / "BAD") SP resp-text
 //                     ; Status condition
-bool ResponseParser::parse_resp_cond_state(ResponseType &response_type, std::string &response_text)
+bool ResponseParser::parse_resp_cond_state(std::unique_ptr<Response> &parsed_response)
 {
   save_pos();
+  ResponseType response_type;
+  std::string response_text;
 
   if (match("OK"))
   {
@@ -256,6 +274,7 @@ bool ResponseParser::parse_resp_cond_state(ResponseType &response_type, std::str
   }
   response_text = data.substr(text_start, curr_pos-text_start);
 
+  parsed_response = std::make_unique<StatusResponse>(response_type, "", response_text); // FIXME: Smart pointer with polymorphism
 
   pop_pos();
   return true;
@@ -272,16 +291,13 @@ bool ResponseParser::parse_response_tagged(std::unique_ptr<Response> &parsed_res
     return false;
   }
   std::string tag = data.substr(tag_start, curr_pos-tag_start);
-  ResponseType response_type;
-  std::string response_text;
-
 
   if (!match(" "))
   {
     restore_pos();
     return false;
   }
-  if (!parse_resp_cond_state(response_type, response_text))
+  if (!parse_resp_cond_state(parsed_response))
   {
     restore_pos();
     return false;
@@ -289,8 +305,7 @@ bool ResponseParser::parse_response_tagged(std::unique_ptr<Response> &parsed_res
   if (!match_crlf())
     PARSE_FAIL
 
-  parsed_response = std::make_unique<StatusResponse>(response_type, tag, response_text);
-
+  parsed_response->set_tag(tag);
   pop_pos();
   return true;
 }
@@ -312,12 +327,11 @@ bool ResponseParser::parse_response_fatal(std::unique_ptr<Response> &parsed_resp
     return false;
   }
   std::string bye_text;
-  if (!parse_resp_cond_bye(bye_text))
+  if (!parse_resp_cond_bye(parsed_response))
   {
     restore_pos();
     return false;
   }
-  parsed_response = std::make_unique<StatusResponse>(ResponseType::BYE, "", bye_text);
 
   pop_pos();
   return true;
@@ -387,7 +401,8 @@ bool ResponseParser::parse_message_id_list()
   save_pos();
   do
   {
-    if (!parse_number()) // FIXME: Should be nz-number (maybe solve in semantic analysis part)
+    int number;
+    if (!parse_number(number))
       PARSE_FAIL
   } while (match(" "));
 
@@ -432,8 +447,9 @@ bool ResponseParser::parse_mailbox()
 //                    "LSUB" SP mailbox-list / "SEARCH" *(SP nz-number) /
 //                    "STATUS" SP mailbox SP "(" [status-att-list] ")" /
 //                    number SP "EXISTS" / number SP "RECENT"
-bool ResponseParser::parse_mailbox_data()
+bool ResponseParser::parse_mailbox_data(std::unique_ptr<Response> &parsed_response)
 {
+  int number = 0;
   save_pos();
   if (match("FLAGS")) // "FLAGS" SP flag-list
   {
@@ -483,15 +499,17 @@ bool ResponseParser::parse_mailbox_data()
     EXPECT_MATCH(")");
     PARSE_SUCCESS
   }
-  else if (parse_number()) // number SP "EXISTS" / number SP "RECENT"
+  else if (parse_number(number)) // number SP "EXISTS" / number SP "RECENT"
   {
     EXPECT_MATCH(" ");
     if (match("EXISTS"))
     {
+      parsed_response = std::make_unique<SingleNumberResponse>(ResponseType::EXISTS, number);
       PARSE_SUCCESS
     }
     else if (match("RECENT"))
     {
+      parsed_response = std::make_unique<SingleNumberResponse>(ResponseType::RECENT, number);
       PARSE_SUCCESS
     }
   }
@@ -509,16 +527,15 @@ bool ResponseParser::parse_response_data(std::unique_ptr<Response> &parsed_respo
     PARSE_FAIL
   if (!match(" "))
     PARSE_FAIL
-  ResponseType response_type;
-  std::string response_text;
-  if (parse_resp_cond_state(response_type, response_text))
+  if (parse_resp_cond_state(parsed_response))
   {
-    parsed_response = std::make_unique<StatusResponse>(response_type, "", response_text); // Untagged status response
+    parsed_response->set_tag("");
   }
-  else if (parse_resp_cond_bye(response_text))
+  else if (parse_resp_cond_bye(parsed_response))
   {
+    parsed_response->set_tag("");
   }
-  else if (parse_mailbox_data())
+  else if (parse_mailbox_data(parsed_response))
   {
   }
   // else if (parse_message_data()){}
@@ -586,18 +603,21 @@ bool ResponseParser::parse_greeting()
 
 std::unique_ptr<Response> ResponseParser::parse()
 {
+  std::cout << "ResponseParser: Parsing \"" << data << "\"." << std::endl;
   std::unique_ptr<Response> parsed_response;
   if(parse_response(parsed_response))
   {
-    return parsed_response;
   }
   else if(parse_greeting())
   {
-    return parsed_response;
   }
   else
   {
+    debug("Parsing failed.");
     throw std::runtime_error("Didn't understand the server's response!");
   }
+
+  assert(parsed_response != nullptr);
+  debug("Parsing succeeded.");
   return parsed_response;
 }

@@ -7,6 +7,21 @@ Response::Response(ResponseType _type)
 {
 }
 
+uint32_t SingleNumberResponse::get_number()
+{
+  return number;
+}
+
+void Response::set_tag(std::string _tag)
+{
+  throw std::logic_error("set_tag virtual method called!");
+}
+
+void StatusResponse::set_tag(std::string _tag)
+{
+  tag = _tag;
+}
+
 ResponseType Response::get_type()
 {
   throw std::logic_error("get_type virtual method called!");
@@ -14,11 +29,16 @@ ResponseType Response::get_type()
 
 std::string Response::get_tag()
 {
-  throw std::logic_error("get_tag virtual method called!");
+  return "";
+}
+
+std::string Response::get_text()
+{
+  throw std::logic_error("get_text virtual method called!");
 }
 
 StatusResponse::StatusResponse(ResponseType _type, std::string _tag, std::string _text)
-  : text(_text), Response(_type)
+  : text(_text), Response(_type), tag(_tag)
 {}
 
 ResponseType StatusResponse::get_type()

@@ -15,6 +15,8 @@ enum class ResponseType
   BYE,
   SEARCH,
   FETCH,
+  EXISTS,
+  RECENT,
 };
 
 class Response
@@ -25,10 +27,12 @@ class Response
   Response(ResponseType _type);
   virtual ResponseType get_type();
   virtual std::string get_tag();
+  virtual std::string get_text();
+  virtual void set_tag(std::string tag);
   virtual ~Response() = default;
 };
 
-class StatusResponse : public Response // OkResponse, NoResponse, BadResponse, PreauthResponse, ByeResponse
+class StatusResponse : public Response // OK, NO, BAD, PREAUTH, BYE
 {
   private:
   public:
@@ -38,6 +42,7 @@ class StatusResponse : public Response // OkResponse, NoResponse, BadResponse, P
   std::string get_text();
   ResponseType get_type();
   std::string get_tag();
+  void set_tag(std::string _tag);
 };
 
 class SearchResponse : public Response
@@ -58,6 +63,20 @@ class FetchResponse : public Response
   public:
   FetchResponse(std::string from, std::string to, std::string subject, std::string message_id, std::string body);
   std::string get_message_data();
+};
+
+class SingleNumberResponse : public Response // EXISTS, RECENT
+{
+  private:
+  uint32_t number;
+  public:
+  uint32_t get_number();
+  SingleNumberResponse(ResponseType _type, uint32_t _number)
+    : Response(_type), number(_number){};
+};
+
+class FlagsResponse : public Response // FLAGS
+{
 };
 
 #endif // RESPONSE_H_
