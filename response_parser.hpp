@@ -12,7 +12,7 @@ class ResponseParser
 {
   private:
   std::string data;
-  int curr_pos;
+  size_t curr_pos;
   std::stack<int> pos_stack;
   void save_pos();
   void restore_pos();
@@ -37,6 +37,7 @@ class ResponseParser
   bool parse_number(int &number);
   bool parse_continue_req();
   bool parse_response_data(std::unique_ptr<Response> &parsed_response);
+  bool parse_message_data(std::unique_ptr<Response> &parsed_response);
   bool parse_response_done(std::unique_ptr<Response> &parsed_response);
   bool parse_response_fatal(std::unique_ptr<Response> &parsed_response);
   bool parse_response_tagged(std::unique_ptr<Response> &parsed_response);
@@ -48,9 +49,18 @@ class ResponseParser
   bool parse_mailbox_list();
   std::unique_ptr<Response> parse();
 
+  bool parse_string(std::string &parsed_string);
+  bool parse_nstring(std::string &parsed_nstring);
+  bool parse_literal(std::string &parsed_literal);
+  bool parse_msg_att();
+  bool parse_msg_att_dynamic();
+
   bool parse_astring();
   bool parse_string();
   bool parse_quoted();
+
+  bool parse_section();
+  bool parse_msg_att_static();
 };
 
 #endif // RESPONSE_PARSER_H_

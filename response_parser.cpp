@@ -7,12 +7,12 @@
 #include "response_parser.hpp"
 
 #define PARSE_FAIL {                                                    \
-    for(int i = 0; i < pos_stack.size();i++)std::cout<<"\t";            \
+    for(size_t i = 0; i < pos_stack.size();i++)std::cout<<"\t";            \
     std::cout << "DEBUG :: " << __func__ << "() failed on char " << curr_pos << "("<< data[curr_pos] << ")" <<std::endl; \
     restore_pos();return false;                                         \
 }
 #define PARSE_SUCCESS {                                     \
-    for(int i = 0; i < pos_stack.size();i++)std::cout<<"\t";            \
+    for(size_t i = 0; i < pos_stack.size();i++)std::cout<<"\t";            \
     std::cout << "DEBUG :: " << __func__ << "() succeeded on char " << curr_pos << "("<< data[curr_pos] << ")" <<std::endl; \
     pop_pos();                                                          \
     return true;                                                        \
@@ -386,8 +386,19 @@ bool ResponseParser::parse_continue_req()
 
 bool ResponseParser::parse_flag_list()
 {
- // TODO
- return false;
+  save_pos();
+  EXPECT_MATCH("(");
+  while(curr_pos < data.size())
+  {
+    if(data[curr_pos] == ')')
+      break;
+    else
+      curr_pos++;
+  }
+  if (curr_pos >= data.size())
+    throw std::runtime_error("Didn't understand the server's response!");
+  EXPECT_MATCH(")");
+  return false;
 }
 
 bool ResponseParser::parse_mailbox_list()
@@ -516,6 +527,181 @@ bool ResponseParser::parse_mailbox_data(std::unique_ptr<Response> &parsed_respon
   PARSE_FAIL
 }
 
+// msg-att-dynamic = "FLAGS" SP "(" [flag-fetch *(SP flag-fetch)] ")"
+//                     ; MAY change for a message
+bool ResponseParser::parse_msg_att_dynamic()
+{
+  save_pos();
+  EXPECT_MATCH("FLAGS");
+  EXPECT_MATCH(" ");
+  EXPECT_MATCH("(");
+  while(curr_pos < data.size()) // Skip
+  {
+    if(data[curr_pos] == ')')
+      break;
+    else
+      curr_pos++;
+  }
+  if (curr_pos >= data.size())
+    throw std::runtime_error("Unmatched bracket.");
+  EXPECT_MATCH(")");
+
+  PARSE_SUCCESS
+}
+
+bool ResponseParser::parse_section()
+{
+  save_pos();
+  EXPECT_MATCH("[");
+  while(curr_pos < data.size()) // Skip
+  {
+    if(data[curr_pos] == ']')
+      break;
+    else
+      curr_pos++;
+  }
+  if (curr_pos >= data.size())
+    throw std::runtime_error("Unmatched bracket.");
+  EXPECT_MATCH("]");
+
+  PARSE_SUCCESS
+}
+
+// msg-att-static  = "ENVELOPE" SP envelope / "INTERNALDATE" SP date-time /
+//                   "RFC822" [".HEADER" / ".TEXT"] SP nstring /
+//                   "RFC822.SIZE" SP number /
+//                   "BODY" ["STRUCTURE"] SP body /
+//                   "BODY" section ["<" number ">"] SP nstring /
+//                   "UID" SP uniqueid
+//                     ; MUST NOT change for a message
+bool ResponseParser::parse_msg_att_static()
+{
+  save_pos();
+  if (match("ENVELOPE"))
+    throw std::logic_error("Not implemented");
+  else if (match("INTERNALDATE"))
+    throw std::logic_error("Not implemented");
+  else if (match("RFC822"))
+    throw std::logic_error("Not implemented");
+  else if (match("RFC822.SIZE"))
+    throw std::logic_error("Not implemented");
+  else if (match("BODY"))
+    if (match("STRUCTURE"))
+    {
+      throw std::logic_error("Not implemented");
+    }
+    else if (match(" "))
+    {
+      throw std::logic_error("Not implemented");
+    }
+    else if (parse_section())
+    {
+      if (match("<"))
+      {
+        throw std::logic_error("Not implemented");
+      }
+      EXPECT_MATCH(" ");
+
+      std::string message;
+      if (!parse_nstring(message))
+      {
+        PARSE_FAIL
+      }
+
+    }
+  else if (match("UID"))
+    throw std::logic_error("Not implemented");
+  PARSE_FAIL
+}
+
+// literal         = "{" number "}" CRLF *CHAR8
+//                     ; Number represents the number of CHAR8s
+bool ResponseParser::parse_literal(std::string &parsed_literal)
+{
+  save_pos();
+  int length = 0;
+  EXPECT_MATCH("{");
+  parse_number(length);
+  EXPECT_MATCH("}");
+  EXPECT_MATCH("\r\n");
+  parsed_literal = data.substr(curr_pos, curr_pos+length);
+  if (parsed_literal.size() < length)
+  {
+    throw std::runtime_error("Literal string received from server shorter than expected!");
+  }
+  PARSE_SUCCESS
+}
+
+
+// string          = quoted / literal
+bool ResponseParser::parse_string(std::string &parsed_string)
+{
+  //if (parse_quoted())
+  // else
+  if (parse_literal(parsed_string))
+  {
+    PARSE_SUCCESS
+  }
+
+  PARSE_FAIL
+}
+
+// nstring         = string / nil
+// nil             = "NIL"
+bool ResponseParser::parse_nstring(std::string &parsed_nstring)
+{
+  if (match("NIL"))
+  {
+    parsed_nstring = "";
+  }
+  else if (parse_string(parsed_nstring))
+  {
+    PARSE_SUCCESS
+  }
+  PARSE_FAIL
+}
+
+// msg-att         = "(" (msg-att-dynamic / msg-att-static)
+//                    *(SP (msg-att-dynamic / msg-att-static)) ")"
+bool ResponseParser::parse_msg_att()
+{
+  save_pos();
+  EXPECT_MATCH("(");
+  if (parse_msg_att_dynamic()){}
+  else if (parse_msg_att_static()){}
+  else
+  {
+    PARSE_FAIL
+  }
+  EXPECT_MATCH(")");
+
+  PARSE_SUCCESS
+}
+
+// message-data    = nz-number SP ("EXPUNGE" / ("FETCH" SP msg-att))
+bool ResponseParser::parse_message_data(std::unique_ptr<Response> &parsed_response)
+{
+  save_pos();
+  int number = 0;
+  if (!parse_number(number))
+  {
+    PARSE_FAIL
+  }
+  EXPECT_MATCH(" ");
+
+  if (match("EXPUNGE"))
+    throw std::logic_error("Not implemented");
+  else if (match("FETCH"))
+  {
+    //parsed_response = std::make_unique<FetchResponse>();
+    EXPECT_MATCH(" ");
+    if (!parse_msg_att())
+    {
+      PARSE_FAIL
+    }
+  }
+  PARSE_SUCCESS
+}
 
 
 // response-data   = "*" SP (resp-cond-state / resp-cond-bye /
@@ -538,7 +724,7 @@ bool ResponseParser::parse_response_data(std::unique_ptr<Response> &parsed_respo
   else if (parse_mailbox_data(parsed_response))
   {
   }
-  // else if (parse_message_data()){}
+  else if (parse_message_data(parsed_response)){}
   // else if (parse_capability_data()){}
   else
   {
