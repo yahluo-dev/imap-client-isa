@@ -16,12 +16,18 @@ class Session
 {
   protected:
   imap_state_t state;
+  uint32_t tag;
   std::string username;
   std::string password;
   std::unique_ptr<Server> server;
+  std::string get_new_tag();
+
   public:
-  Session(const std::string hostname, const std::string port);
-  void Login(const std::string _username, const std::string _password);
+  Session(const std::string _hostname, const std::string _port);
+  void login(const std::string username, const std::string password);
+  void select(const std::string mailbox);
+  std::vector<uint32_t> search();
+  void fetch(std::vector<uint32_t> sequence_set);
 };
 
 #endif // SESSION_H_

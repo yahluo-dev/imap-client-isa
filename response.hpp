@@ -19,6 +19,8 @@ enum class ResponseType
   RECENT,
 };
 
+std::ostream& operator<<(std::ostream& os, ResponseType response_type);
+
 class Response
 {
   protected:

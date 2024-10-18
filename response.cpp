@@ -1,6 +1,40 @@
 #include <stdexcept>
 #include "response.hpp"
 
+std::ostream& operator<<(std::ostream& os, ResponseType response_type)
+{
+  switch(response_type)
+  {
+    case ResponseType::OK:
+      os << std::string("OK");
+      break;
+    case ResponseType::NO:
+      os << std::string("NO");
+      break;
+    case ResponseType::BAD:
+      os << std::string("BAD");
+      break;
+    case ResponseType::PREAUTH:
+      os << std::string("PREAUTH");
+      break;
+    case ResponseType::BYE:
+      os << std::string("BYE");
+      break;
+    case ResponseType::SEARCH:
+      os << std::string("SEARCH");
+      break;
+    case ResponseType::FETCH:
+      os << std::string("FETCH");
+      break;
+    case ResponseType::EXISTS:
+      os << std::string("EXISTS");
+      break;
+    case ResponseType::RECENT:
+      os << std::string("RECENT");
+      break;
+  }
+  return os;
+}
 
 Response::Response(ResponseType _type)
 : type(_type)
