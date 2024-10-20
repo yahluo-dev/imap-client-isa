@@ -19,6 +19,7 @@ debug: CXXFLAGS += $(debug_flags)
 debug: $(EXE)
 
 test: CXXFLAGS += $(test_flags)
+test: CXXFLAGS += $(debug_flags)
 test: $(TESTEXE)
 test: ./$(TESTEXE)
 
