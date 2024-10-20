@@ -164,3 +164,35 @@ TEST(ResponseParserParseTests, SelectResponseParseCorrect2)
   ASSERT_NO_THROW((result = parser->parse()));
   ASSERT_EQ(expected[8]->get_tag(), result->get_tag());
 }
+
+TEST(ResponseParserParseTests, SearchResponseParseCorrect)
+{
+  std::vector<std::unique_ptr<Response>> expected;
+  std::vector<uint32_t> expected_seq_numbers = {1,2,4,5};
+
+  expected.push_back(std::make_unique<SearchResponse>(expected_seq_numbers));
+  expected.push_back(std::make_unique<StatusResponse>(ResponseType::OK, "5", "Search completed (0.001 + 0.000 secs)."));
+  std::vector<std::string> test_data = {"* SEARCH 1 2 3 4 5",
+                                        "5 OK Search completed (0.001 + 0.000 secs)."};
+
+  std::unique_ptr<ResponseParser> parser = std::make_unique<ResponseParser>(test_data[0]);
+  std::unique_ptr<Response> response;
+  ASSERT_NO_THROW(response = parser->parse());
+  ASSERT_EQ(response->get_type(), ResponseType::SEARCH);
+  ASSERT_EQ(expected_seq_numbers, dynamic_cast<SearchResponse &>(*response).get_seq_numbers());
+
+  parser = std::make_unique<ResponseParser>(test_data[1]);
+  ASSERT_NO_THROW((response = parser->parse()));
+  ASSERT_EQ(response->get_type(), ResponseType::OK);
+  ASSERT_EQ(response->get_tag(), "5");
+}
+
+TEST(ResponseParserParseTests, FetchResponseParseCorrect)
+{
+  ASSERT_EQ(1,0);
+}
+
+TEST(ResponseParserParseTests, FetchBodyResponseParseCorrect)
+{
+  ASSERT_EQ(1,0);
+}
