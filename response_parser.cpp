@@ -20,7 +20,7 @@
 
 #define EXPECT_MATCH(s) {if (!match(s)){restore_pos();return false;}}
 
-#define debug(...) printf("DEBUG :: " __VA_ARGS__);
+#define debug(...) printf("DEBUG :: " __VA_ARGS__);std::cout << std::endl;
 
 void ResponseParser::save_pos()
 {

@@ -85,19 +85,19 @@ TEST(ResponseParserParseTests, SelectResponseParseCorrect)
 
   std::unique_ptr<Response> result;
 
-  ResponseParser parser = ResponseParser(test_data[0]);
-  ASSERT_NO_THROW((result = parser.parse()));
+  std::unique_ptr<ResponseParser> parser = std::make_unique<ResponseParser>(test_data[0]);
+  ASSERT_NO_THROW((result = parser->parse()));
   ASSERT_EQ(expected[0]->get_tag(), result->get_tag());
 
-  parser = ResponseParser(test_data[1]);
-  ASSERT_NO_THROW((result = parser.parse()));
+  parser = std::make_unique<ResponseParser>(test_data[1]);
+  ASSERT_NO_THROW((result = parser->parse()));
   ASSERT_EQ(expected[1]->get_tag(), result->get_tag());
 
-  parser = ResponseParser(test_data[2]);
-  ASSERT_NO_THROW((result = parser.parse()));
+  parser = std::make_unique<ResponseParser>(test_data[2]);
+  ASSERT_NO_THROW((result = parser->parse()));
   ASSERT_EQ(expected[2]->get_tag(), result->get_tag());
 
-  parser = ResponseParser(test_data[3]);
-  ASSERT_NO_THROW((result = parser.parse()));
+  parser = std::make_unique<ResponseParser>(test_data[3]);
+  ASSERT_NO_THROW((result = parser->parse()));
   ASSERT_EQ(expected[3]->get_tag(), result->get_tag());
 }
