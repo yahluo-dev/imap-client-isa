@@ -398,7 +398,7 @@ bool ResponseParser::parse_flag_list()
   if (curr_pos >= data.size())
     throw std::runtime_error("Didn't understand the server's response!");
   EXPECT_MATCH(")");
-  return false;
+  PARSE_SUCCESS
 }
 
 bool ResponseParser::parse_mailbox_list()
@@ -461,6 +461,7 @@ bool ResponseParser::parse_mailbox_data(std::unique_ptr<Response> &parsed_respon
       restore_pos();
       return false; // Can this even happen for a valid string?
     }
+    parsed_response = std::make_unique<FlagsResponse>();
     pop_pos();
     return true;
   }
@@ -716,6 +717,7 @@ bool ResponseParser::parse_response_data(std::unique_ptr<Response> &parsed_respo
   }
   else if (parse_mailbox_data(parsed_response))
   {
+    std::cout << "Parsed mailbox data" << std::endl;
   }
   else if (parse_message_data(parsed_response)){}
   // else if (parse_capability_data()){}
