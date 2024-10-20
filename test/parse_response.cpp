@@ -80,7 +80,7 @@ TEST(ResponseParserParseTests, SelectResponseParseCorrect)
 
   std::vector<std::string> test_data = {"* 5 EXISTS\r\n",
                           "* 0 RECENT\r\n",
-                          "* OK [UNSEEN 2] Message 2 is the first unseen message\r\n",
+                          "* OK [UNSEEN 2] Message 2 is the first unseen message\r\n", // FIXME: This is not valid per RFC. FLAGS Missing
                           "A003 OK [READ-WRITE] SELECT completed.\r\n"};
 
   std::unique_ptr<Response> result;
@@ -100,4 +100,67 @@ TEST(ResponseParserParseTests, SelectResponseParseCorrect)
   parser = std::make_unique<ResponseParser>(test_data[3]);
   ASSERT_NO_THROW((result = parser->parse()));
   ASSERT_EQ(expected[3]->get_tag(), result->get_tag());
+}
+
+TEST(ResponseParserParseTests, SelectResponseParseCorrect2)
+{
+  std::vector<std::unique_ptr<Response>> expected;
+
+  expected.push_back(std::make_unique<StatusResponse>(ResponseType::OK, "", "[CLOSED] Previous mailbox closed."));
+  expected.push_back(std::make_unique<FlagsResponse>());
+  expected.push_back(std::make_unique<StatusResponse>(ResponseType::OK, "", "[PERMANENTFLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft \\*)] Flags permitted."));
+  expected.push_back(std::make_unique<SingleNumberResponse>(ResponseType::EXISTS, 5));
+  expected.push_back(std::make_unique<SingleNumberResponse>(ResponseType::RECENT, 0));
+  expected.push_back(std::make_unique<StatusResponse>(ResponseType::OK, "", "[UNSEEN 5] First unseen."));
+  expected.push_back(std::make_unique<StatusResponse>(ResponseType::OK, "", "[UIDVALIDITY 1727693727] UIDs valid"));
+  expected.push_back(std::make_unique<StatusResponse>(ResponseType::OK, "", "[UIDNEXT 6] Predicted next UID"));
+  expected.push_back(std::make_unique<StatusResponse>(ResponseType::OK, "4", "[READ-WRITE] Select completed (0.014 + 0.000 + 0.013 secs)."));
+
+  std::vector<std::string> test_data = {"* OK [CLOSED] Previous mailbox closed.\r\n",
+                                        "* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n",
+                                        "* OK [PERMANENTFLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft \\*)] Flags permitted.\r\n",
+                                        "* 5 EXISTS\r\n",
+                                        "* 0 RECENT\r\n",
+                                        "* OK [UNSEEN 5] First unseen.\r\n",
+                                        "* OK [UIDVALIDITY 1727693727] UIDs valid\r\n",
+                                        "* OK [UIDNEXT 6] Predicted next UID\r\n",
+                                        "4 OK [READ-WRITE] Select completed (0.014 + 0.000 + 0.013 secs).\r\n"};
+
+  std::unique_ptr<Response> result;
+
+  std::unique_ptr<ResponseParser> parser = std::make_unique<ResponseParser>(test_data[0]);
+  ASSERT_NO_THROW((result = parser->parse()));
+  ASSERT_EQ(expected[0]->get_tag(), result->get_tag());
+
+  parser = std::make_unique<ResponseParser>(test_data[1]);
+  ASSERT_NO_THROW((result = parser->parse()));
+  ASSERT_EQ(expected[1]->get_tag(), result->get_tag());
+
+  parser = std::make_unique<ResponseParser>(test_data[2]);
+  ASSERT_NO_THROW((result = parser->parse()));
+  ASSERT_EQ(expected[2]->get_tag(), result->get_tag());
+
+  parser = std::make_unique<ResponseParser>(test_data[3]);
+  ASSERT_NO_THROW((result = parser->parse()));
+  ASSERT_EQ(expected[3]->get_tag(), result->get_tag());
+
+  parser = std::make_unique<ResponseParser>(test_data[4]);
+  ASSERT_NO_THROW((result = parser->parse()));
+  ASSERT_EQ(expected[4]->get_tag(), result->get_tag());
+
+  parser = std::make_unique<ResponseParser>(test_data[5]);
+  ASSERT_NO_THROW((result = parser->parse()));
+  ASSERT_EQ(expected[5]->get_tag(), result->get_tag());
+
+  parser = std::make_unique<ResponseParser>(test_data[6]);
+  ASSERT_NO_THROW((result = parser->parse()));
+  ASSERT_EQ(expected[6]->get_tag(), result->get_tag());
+
+  parser = std::make_unique<ResponseParser>(test_data[7]);
+  ASSERT_NO_THROW((result = parser->parse()));
+  ASSERT_EQ(expected[7]->get_tag(), result->get_tag());
+
+  parser = std::make_unique<ResponseParser>(test_data[8]);
+  ASSERT_NO_THROW((result = parser->parse()));
+  ASSERT_EQ(expected[8]->get_tag(), result->get_tag());
 }
