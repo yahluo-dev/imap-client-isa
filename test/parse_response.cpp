@@ -187,12 +187,42 @@ TEST(ResponseParserParseTests, SearchResponseParseCorrect)
   ASSERT_EQ(response->get_tag(), "5");
 }
 
-TEST(ResponseParserParseTests, FetchResponseParseCorrect)
-{
-  ASSERT_EQ(1,0);
-}
-
 TEST(ResponseParserParseTests, FetchBodyResponseParseCorrect)
 {
-  ASSERT_EQ(1,0);
+  std::unique_ptr<FetchResponse> expected = std::make_unique<FetchResponse>(
+                          "Return-Path: <testercat2232@buttercat3323-20l6s67300.localdomain>\r\n"
+                          "X-Original-To: buttercat3323@buttercat3323-20l6s67300.localdomain\r\n"
+                          "Delivered-To: buttercat3323@buttercat3323-20l6s67300.localdomain\r\n"
+                          "Received: by buttercat3323-20l6s67300.localdomain (Postfix, from userid 30033)\r\n"
+                          "        id 32E1618D1; Thu, 17 Oct 2024 13:01:30 +0200 (CEST)\r\n"
+                          "Date: Thu, 17 Oct 2024 13:01:30 +0200\r\n"
+                          "To: buttercat3323@buttercat3323-20l6s67300.localdomain\r\n"
+                          "Subject: Test Email\r\n"
+                          "User-Agent: mail v14.9.24\r\n"
+                          "Message-Id: <20241017110130.32E1618D1@buttercat3323-20l6s67300.localdomain>\r\n"
+                          "From: testercat2232@buttercat3323-20l6s67300.localdomain\r\n"
+                          "\r\n"
+                          "This is a test mail\r\n");
+
+  std::string test_data = "* 5 FETCH (FLAGS (\\Seen) BODY[] {636}\r\n"
+                          "Return-Path: <testercat2232@buttercat3323-20l6s67300.localdomain>\r\n"
+                          "X-Original-To: buttercat3323@buttercat3323-20l6s67300.localdomain\r\n"
+                          "Delivered-To: buttercat3323@buttercat3323-20l6s67300.localdomain\r\n"
+                          "Received: by buttercat3323-20l6s67300.localdomain (Postfix, from userid 30033)\r\n"
+                          "        id 32E1618D1; Thu, 17 Oct 2024 13:01:30 +0200 (CEST)\r\n"
+                          "Date: Thu, 17 Oct 2024 13:01:30 +0200\r\n"
+                          "To: buttercat3323@buttercat3323-20l6s67300.localdomain\r\n"
+                          "Subject: Test Email\r\n"
+                          "User-Agent: mail v14.9.24\r\n"
+                          "Message-Id: <20241017110130.32E1618D1@buttercat3323-20l6s67300.localdomain>\r\n"
+                          "From: testercat2232@buttercat3323-20l6s67300.localdomain\r\n"
+                          "\r\n"
+                          "This is a test mail\r\n"
+                          ")";
+  std::unique_ptr<ResponseParser> parser = std::make_unique<ResponseParser>(test_data);
+
+  std::unique_ptr<Response> response;
+  ASSERT_NO_THROW(response = parser->parse());
+  ASSERT_EQ(response->get_type(), ResponseType::FETCH);
+  ASSERT_EQ(expected->get_message_data(), dynamic_cast<FetchResponse &>(*response).get_message_data());
 }
