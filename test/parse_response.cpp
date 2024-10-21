@@ -218,7 +218,7 @@ TEST(ResponseParserParseTests, FetchBodyResponseParseCorrect)
                           "From: jerry@josh-20l6s67300.localdomain\r\n"
                           "\r\n"
                           "This is a test mail\r\n"
-                          ")";
+                          ")\r\n";
   std::unique_ptr<ResponseParser> parser = std::make_unique<ResponseParser>(test_data);
 
   std::unique_ptr<Response> response;
