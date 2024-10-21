@@ -168,12 +168,12 @@ TEST(ResponseParserParseTests, SelectResponseParseCorrect2)
 TEST(ResponseParserParseTests, SearchResponseParseCorrect)
 {
   std::vector<std::unique_ptr<Response>> expected;
-  std::vector<uint32_t> expected_seq_numbers = {1,2,4,5};
+  std::vector<uint32_t> expected_seq_numbers = {1,2,3,4,5};
 
   expected.push_back(std::make_unique<SearchResponse>(expected_seq_numbers));
   expected.push_back(std::make_unique<StatusResponse>(ResponseType::OK, "5", "Search completed (0.001 + 0.000 secs)."));
-  std::vector<std::string> test_data = {"* SEARCH 1 2 3 4 5",
-                                        "5 OK Search completed (0.001 + 0.000 secs)."};
+  std::vector<std::string> test_data = {"* SEARCH 1 2 3 4 5\r\n",
+                                        "5 OK Search completed (0.001 + 0.000 secs).\r\n"};
 
   std::unique_ptr<ResponseParser> parser = std::make_unique<ResponseParser>(test_data[0]);
   std::unique_ptr<Response> response;
@@ -190,32 +190,32 @@ TEST(ResponseParserParseTests, SearchResponseParseCorrect)
 TEST(ResponseParserParseTests, FetchBodyResponseParseCorrect)
 {
   std::unique_ptr<FetchResponse> expected = std::make_unique<FetchResponse>(
-                          "Return-Path: <testercat2232@buttercat3323-20l6s67300.localdomain>\r\n"
-                          "X-Original-To: buttercat3323@buttercat3323-20l6s67300.localdomain\r\n"
-                          "Delivered-To: buttercat3323@buttercat3323-20l6s67300.localdomain\r\n"
-                          "Received: by buttercat3323-20l6s67300.localdomain (Postfix, from userid 30033)\r\n"
+                          "Return-Path: <jerry@josh-20l6s67300.localdomain>\r\n"
+                          "X-Original-To: josh@josh-20l6s67300.localdomain\r\n"
+                          "Delivered-To: josh@josh-20l6s67300.localdomain\r\n"
+                          "Received: by josh-20l6s67300.localdomain (Postfix, from userid 30033)\r\n"
                           "        id 32E1618D1; Thu, 17 Oct 2024 13:01:30 +0200 (CEST)\r\n"
                           "Date: Thu, 17 Oct 2024 13:01:30 +0200\r\n"
-                          "To: buttercat3323@buttercat3323-20l6s67300.localdomain\r\n"
+                          "To: josh@josh-20l6s67300.localdomain\r\n"
                           "Subject: Test Email\r\n"
                           "User-Agent: mail v14.9.24\r\n"
-                          "Message-Id: <20241017110130.32E1618D1@buttercat3323-20l6s67300.localdomain>\r\n"
-                          "From: testercat2232@buttercat3323-20l6s67300.localdomain\r\n"
+                          "Message-Id: <20241017110130.32E1618D1@josh-20l6s67300.localdomain>\r\n"
+                          "From: jerry@josh-20l6s67300.localdomain\r\n"
                           "\r\n"
                           "This is a test mail\r\n");
 
   std::string test_data = "* 5 FETCH (FLAGS (\\Seen) BODY[] {636}\r\n"
-                          "Return-Path: <testercat2232@buttercat3323-20l6s67300.localdomain>\r\n"
-                          "X-Original-To: buttercat3323@buttercat3323-20l6s67300.localdomain\r\n"
-                          "Delivered-To: buttercat3323@buttercat3323-20l6s67300.localdomain\r\n"
-                          "Received: by buttercat3323-20l6s67300.localdomain (Postfix, from userid 30033)\r\n"
+                          "Return-Path: <jerry@josh-20l6s67300.localdomain>\r\n"
+                          "X-Original-To: josh@josh-20l6s67300.localdomain\r\n"
+                          "Delivered-To: josh@josh-20l6s67300.localdomain\r\n"
+                          "Received: by josh-20l6s67300.localdomain (Postfix, from userid 30033)\r\n"
                           "        id 32E1618D1; Thu, 17 Oct 2024 13:01:30 +0200 (CEST)\r\n"
                           "Date: Thu, 17 Oct 2024 13:01:30 +0200\r\n"
-                          "To: buttercat3323@buttercat3323-20l6s67300.localdomain\r\n"
+                          "To: josh@josh-20l6s67300.localdomain\r\n"
                           "Subject: Test Email\r\n"
                           "User-Agent: mail v14.9.24\r\n"
-                          "Message-Id: <20241017110130.32E1618D1@buttercat3323-20l6s67300.localdomain>\r\n"
-                          "From: testercat2232@buttercat3323-20l6s67300.localdomain\r\n"
+                          "Message-Id: <20241017110130.32E1618D1@josh-20l6s67300.localdomain>\r\n"
+                          "From: jerry@josh-20l6s67300.localdomain\r\n"
                           "\r\n"
                           "This is a test mail\r\n"
                           ")";
