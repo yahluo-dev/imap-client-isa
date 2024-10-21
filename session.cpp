@@ -108,7 +108,30 @@ std::vector<uint32_t> Session::search()
   }
 }
 
-void Session::fetch(std::vector<uint32_t> sequence_set)
+std::string Session::fetch(std::vector<uint32_t> sequence_set)
 {
+  server->send(std::make_unique<FetchCommand>(get_new_tag(), sequence_set));
 
+  std::unique_ptr<FetchResponse> fetch_results_response;
+  std::unique_ptr<Response> response;
+
+  do
+  {
+    response = server->receive();
+    if (response->get_type() == ResponseType::FETCH)
+    {
+      fetch_results_response = std::unique_ptr<FetchResponse>(dynamic_cast<FetchResponse *>(response.release()));
+    }
+  } while (response->get_tag() == "");
+
+  if (response->get_type() == ResponseType::OK)
+  {
+    std::cout << "Fetch OK" << std::endl;
+    return fetch_results_response->get_message_data();
+  }
+  else
+  {
+    std::cout << "[" << response->get_type() << "] Server: " << response->get_type() << std::endl;
+    throw std::runtime_error("Search failed");
+  }
 }
