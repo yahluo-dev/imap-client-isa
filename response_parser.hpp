@@ -18,8 +18,8 @@ class ResponseParser
   void restore_pos();
   void pop_pos();
   public:
-  ResponseParser(std::string _data)
-    : data(_data), curr_pos(0){};
+  ResponseParser()
+    : curr_pos(0){};
 
   bool match(std::string expected);
   bool regex_match(std::regex expected);
@@ -47,7 +47,7 @@ class ResponseParser
   bool parse_mailbox_data(std::unique_ptr<Response> &parsed_response);
   bool parse_flag_list();
   bool parse_mailbox_list();
-  std::unique_ptr<Response> parse();
+  std::unique_ptr<Response> parse(std::string _data);
 
   bool parse_string(std::string &parsed_string);
   bool parse_nstring(std::string &parsed_nstring);

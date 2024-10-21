@@ -815,8 +815,11 @@ bool ResponseParser::parse_greeting()
   PARSE_SUCCESS
 }
 
-std::unique_ptr<Response> ResponseParser::parse()
+std::unique_ptr<Response> ResponseParser::parse(std::string _data)
 {
+  curr_pos = 0;
+  data = _data;
+
   std::cout << "ResponseParser: Parsing \"" << data << "\"." << std::endl;
   std::unique_ptr<Response> parsed_response;
   if(parse_response(parsed_response))
