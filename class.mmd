@@ -12,7 +12,7 @@ classDiagram
 
   note for Client "Handles interaction with the user, including a REPL in interactive mode"
 
-  class ResponseFactory {
+  class ResponseParser {
     +Response *create(m: string)
   }
 
@@ -67,27 +67,7 @@ classDiagram
     +ResponseType type
   }
 
-  class OkResponse {
-    +Tag tag
-    +string text
-  }
-
-  class NoResponse {
-    +Tag tag
-    +string text
-  }
-
-  class BadResponse {
-    +Tag tag
-    +string text
-  }
-
-  class PreauthResponse {
-    +Tag tag
-    +string text
-  }
-
-  class ByeResponse {
+  class StatusResponse {
     +Tag tag
     +string text
   }
@@ -110,19 +90,7 @@ classDiagram
 
   class FetchResponse {
     +Tag tag
-  }
-
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %% MESSAGE
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-  class IMFMessage {
-    +Datetime date
-    +std::string from
-    +std::string to
-    +std::string subject
-    +std::string message_id
-    +std::string body
+    +string message_data
   }
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -171,17 +139,11 @@ classDiagram
   Command <|-- FetchCommand
 
   <<Abstract>> Response
-  Server -- ResponseFactory : << uses >>
-  ResponseFactory -- Response : << instantiates >>
-  Response <|-- OkResponse
-  Response <|-- NoResponse
-  Response <|-- BadResponse
-  Response <|-- PreauthResponse
-  Response <|-- ByeResponse
+  Server -- ResponseParser : << uses >>
+  ResponseParser -- Response : << instantiates >>
+  Response <|-- StatusResponse
   Response <|-- SearchResponse
 %%  Response <|-- ListResponse
 %%  Response <|-- FlagsResponse
 %%  Response <|-- ExistsResponse
   Response <|-- FetchResponse
-
-  FetchResponse -- IMFMessage
