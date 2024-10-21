@@ -29,7 +29,7 @@ class ResponseParser
   bool parse_text_char();
   bool parse_resp_text();
   bool parse_mailbox();
-  bool parse_message_id_list();
+  bool parse_message_id_list(std::vector<uint32_t> &numbers);
   bool parse_resp_text_code();
   bool match_crlf();
   bool parse_tag();

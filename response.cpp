@@ -58,7 +58,7 @@ void StatusResponse::set_tag(std::string _tag)
 
 ResponseType Response::get_type()
 {
-  throw std::logic_error("get_type virtual method called!");
+  return type;
 }
 
 std::string Response::get_tag()
@@ -102,5 +102,5 @@ FetchResponse::FetchResponse(std::string _message_data)
 
 std::string FetchResponse::get_message_data()
 {
-  throw std::logic_error("FetchResponse::get_message_data(): Not implemented");
+  return message_data;
 }

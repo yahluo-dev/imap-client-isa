@@ -407,7 +407,7 @@ bool ResponseParser::parse_mailbox_list()
  return false;
 }
 
-bool ResponseParser::parse_message_id_list()
+bool ResponseParser::parse_message_id_list(std::vector<uint32_t> &numbers)
 {
   save_pos();
   do
@@ -415,6 +415,7 @@ bool ResponseParser::parse_message_id_list()
     int number;
     if (!parse_number(number))
       PARSE_FAIL
+    numbers.push_back(number);
   } while (match(" "));
 
   PARSE_SUCCESS
@@ -451,8 +452,8 @@ bool ResponseParser::parse_mailbox()
 //                    number SP "EXISTS" / number SP "RECENT"
 bool ResponseParser::parse_mailbox_data(std::unique_ptr<Response> &parsed_response)
 {
-  int number = 0;
   save_pos();
+  int number = 0;
   if (match("FLAGS")) // "FLAGS" SP flag-list
   {
     EXPECT_MATCH(" ");
@@ -486,8 +487,10 @@ bool ResponseParser::parse_mailbox_data(std::unique_ptr<Response> &parsed_respon
   else if (match("SEARCH")) // "SEARCH" *(SP nz-number)
   {
     EXPECT_MATCH(" ");
-    if (!parse_message_id_list())
+    std::vector<uint32_t> ids;
+    if (!parse_message_id_list(ids))
       PARSE_FAIL
+    parsed_response = std::make_unique<SearchResponse>(ids);
   }
   else if (match("STATUS")) // "STATUS" SP mailbox SP "(" [status-att-list] ")"
   {
@@ -515,8 +518,16 @@ bool ResponseParser::parse_mailbox_data(std::unique_ptr<Response> &parsed_respon
       parsed_response = std::make_unique<SingleNumberResponse>(ResponseType::RECENT, number);
       PARSE_SUCCESS
     }
+    else
+    {
+      PARSE_FAIL
+    }
   }
-  PARSE_FAIL
+  else
+  {
+    PARSE_FAIL
+  }
+  PARSE_SUCCESS
 }
 
 // msg-att-dynamic = "FLAGS" SP "(" [flag-fetch *(SP flag-fetch)] ")"
@@ -599,6 +610,7 @@ bool ResponseParser::parse_msg_att_static(std::string &message_contents)
       {
         PARSE_FAIL
       }
+      PARSE_SUCCESS
     }
   }
   else if (match("UID"))
@@ -617,9 +629,12 @@ bool ResponseParser::parse_literal(std::string &parsed_literal)
   EXPECT_MATCH("}");
   EXPECT_MATCH("\r\n");
   parsed_literal = data.substr(curr_pos, curr_pos+length);
+  curr_pos += parsed_literal.size();
   if (parsed_literal.size() < length)
   {
-    throw std::runtime_error("Literal string received from server shorter than expected!");
+    debug("Warning: Literal string received from server shorter than expected!")
+    curr_pos -= 3;
+    parsed_literal = parsed_literal.substr(0, parsed_literal.size()-3); // FIXME: This is an error and should not be a warning
   }
   PARSE_SUCCESS
 }
@@ -628,6 +643,7 @@ bool ResponseParser::parse_literal(std::string &parsed_literal)
 // string          = quoted / literal
 bool ResponseParser::parse_string(std::string &parsed_string)
 {
+  save_pos();
   //if (parse_quoted())
   // else
   if (parse_literal(parsed_string))
@@ -642,8 +658,10 @@ bool ResponseParser::parse_string(std::string &parsed_string)
 // nil             = "NIL"
 bool ResponseParser::parse_nstring(std::string &parsed_nstring)
 {
+  save_pos();
   if (match("NIL"))
   {
+    EXPECT_MATCH(" ");
     parsed_nstring = "";
   }
   else if (parse_string(parsed_nstring))
@@ -665,6 +683,16 @@ bool ResponseParser::parse_msg_att(std::string &message_contents)
   else
   {
     PARSE_FAIL
+  }
+  while(true)
+  {
+    if (!match(" ")) break;
+    if (parse_msg_att_dynamic()){}
+    else if (parse_msg_att_static(message_contents)){}
+    else
+    {
+      break;
+    }
   }
   EXPECT_MATCH(")");
 
@@ -693,6 +721,11 @@ bool ResponseParser::parse_message_data(std::unique_ptr<Response> &parsed_respon
       PARSE_FAIL
     }
     parsed_response = std::make_unique<FetchResponse>(message_contents);
+    std::cout << "Parsed message contents: " << std::endl << message_contents << std::endl;
+  }
+  else
+  {
+    PARSE_FAIL
   }
   PARSE_SUCCESS
 }

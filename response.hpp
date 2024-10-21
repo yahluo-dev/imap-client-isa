@@ -17,6 +17,7 @@ enum class ResponseType
   FETCH,
   EXISTS,
   RECENT,
+  FLAGS
 };
 
 std::ostream& operator<<(std::ostream& os, ResponseType response_type);
@@ -79,6 +80,9 @@ class SingleNumberResponse : public Response // EXISTS, RECENT
 
 class FlagsResponse : public Response // FLAGS
 {
+  public:
+  FlagsResponse()
+    : Response(ResponseType::FLAGS){};
 };
 
 #endif // RESPONSE_H_
