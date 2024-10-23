@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
         only_unseen = true;
         break;
       }
-      case 't':
+      case 'h':
       {
         only_headers = true;
         break;
@@ -122,12 +122,12 @@ int main(int argc, char *argv[])
         cert_file = optarg;
         break;
       }
-      case 'h':
-      {
-        std::cerr << USAGE << std::endl;
-        return 0;
-        break;
-      }
+//      case 'h':
+//      {
+//        std::cerr << USAGE << std::endl;
+//        return 0;
+//        break;
+//      }
       default:
       {
         std::cerr << "Invalid Usage or not implemented." << std::endl;
