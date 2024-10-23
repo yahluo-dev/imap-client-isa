@@ -3,8 +3,11 @@
 #include <unistd.h>
 #include <regex>
 #include <stdexcept>
+#include <fstream>
+#include <format>
 #include "main.hpp"
 #include "session.hpp"
+#include "fnv.hpp"
 
 typedef struct {
   std::string username;
@@ -61,8 +64,6 @@ int main(int argc, char *argv[])
   std::string cert_file;
   std::string output_dir;
   std::string auth_file;
-
-
 
   while (-1 != (opt_char = getopt(argc, argv, "p:Tc:C:nha:b:o:")))
   {
@@ -135,6 +136,12 @@ int main(int argc, char *argv[])
     }
   }
 
+  if (output_dir.empty())
+  {
+    std::cerr << "Output directory must be specified." << std::endl;
+    return 1;
+  }
+
   if (optind == argc)
   {
     std::cerr << "Hostname must be supplied." << std::endl;
@@ -163,5 +170,23 @@ int main(int argc, char *argv[])
   }
 
   std::unique_ptr<Session> session = std::make_unique<Session>(server_hostname, port_number);
+  session->login(creds.username, creds.password);
+  session->select(mailbox_name);
+  std::vector<uint32_t> seq_set = session->search();
+  std::vector<std::string> messages = session->fetch(seq_set);
 
+  FNV fnv;
+  for (const auto& message : messages)
+  {
+    std::string path = std::format("{}/{}.eml", output_dir, fnv.hash(message));
+    std::ofstream save_to(path);
+    if (!save_to)
+    {
+      std::cerr << std::format("Could not open \"{}\" for writing.", path);
+      return 1;
+    }
+
+    save_to << message << std::endl;
+    save_to.close();
+  }
 }

@@ -23,7 +23,7 @@ test: CXXFLAGS += $(debug_flags)
 test: $(TESTEXE)
 test: ./$(TESTEXE)
 
-$(EXE): main.o command.o response.o session.o server.o response_parser.o tls_server.o
+$(EXE): main.o command.o response.o session.o server.o response_parser.o tls_server.o fnv.o
 	$(CXX) $(CXXFLAGS) -lssl -lcrypto $^ -o $@
 
 main.o: main.cpp
@@ -42,6 +42,9 @@ server.o: server.cpp
 	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
 tls_server.o: tls_server.cpp
+	$(CXX) $(CXXFLAGS) -c $^ -o $@
+
+fnv.o: fnv.cpp
 	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
 response_parser.o: response_parser.cpp

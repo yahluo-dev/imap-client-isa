@@ -2,5 +2,6 @@ imapcl
 imapcl-tests
 *.o
 test-credentials
+test-outdir
 *.tar
 *.png
