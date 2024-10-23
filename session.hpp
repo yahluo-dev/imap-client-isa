@@ -27,7 +27,7 @@ class Session
   void login(const std::string username, const std::string password);
   void select(const std::string mailbox);
   std::vector<uint32_t> search();
-  std::string fetch(std::vector<uint32_t> sequence_set);
+  std::vector<std::string> fetch(std::vector<uint32_t> sequence_set);
 };
 
 #endif // SESSION_H_

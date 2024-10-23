@@ -11,6 +11,8 @@
 #include "response.hpp"
 #include "response_parser.hpp"
 
+#define RECVMESSAGE_MAXLEN 4096
+
 Server::Server(const std::string hostname, const std::string port)
 {
   int rv;
@@ -56,16 +58,45 @@ void Server::send(std::unique_ptr<Command> command)
 
 std::unique_ptr<Response> Server::receive()
 {
-  char buffer[2048];
-  std::string response_data;
-  ssize_t bytes_recvd = recv(client_socket, &buffer, 2048, 0);
-  response_data = std::string(buffer, bytes_recvd);
+  std::unique_ptr<Response> returned;
+  char buffer[RECVMESSAGE_MAXLEN];
+  std::string responses_data;
+  std::vector<std::unique_ptr<Response>> parsed_responses;
+  ssize_t bytes_recvd;
 
-  ResponseParser response_parser = ResponseParser(response_data);
+  if (!response_buffer.empty())
+  {
+    returned = std::move(response_buffer.front());
+    response_buffer.pop();
+    return returned; // If there's something in buffer, return it
+  }
 
-  std::unique_ptr<Response> response = response_parser.parse();
+  if (-1 == (bytes_recvd = recv(
+      client_socket, &buffer, RECVMESSAGE_MAXLEN, 0)))
+  {
+    throw std::runtime_error("recv() failed");
+  }
+  if (bytes_recvd == 0)
+    throw std::logic_error("Connection already terminated!");
+  responses_data.append(buffer, bytes_recvd);
+  if (responses_data.size() == RECVMESSAGE_MAXLEN &&
+      responses_data.substr(responses_data.size()-2, responses_data.size()) != "\r\n")
+  {
+    // We didn't receive the entire thing
+    throw std::logic_error("Not implemented");
+  }
 
-  return response;
+  ResponseParser response_parser = ResponseParser(responses_data);
+  std::unique_ptr<Response> response;
+  while(response_parser.parse_next(response))
+  {
+    response_buffer.push(std::move(response));
+  }
+
+  returned = std::move(response_buffer.front());
+  response_buffer.pop();
+  return returned; // Return first of the newly parsed messages
+
 }
 
 TLSServer::TLSServer(const std::string hostname, const std::string port)

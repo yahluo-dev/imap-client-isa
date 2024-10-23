@@ -18,7 +18,7 @@
     return true;                                                        \
 }
 
-#define EXPECT_MATCH(s) {if (!match(s)){restore_pos();return false;}}
+#define EXPECT_MATCH(s) {if (!match(s)){restore_pos();std::cout << s " expected, " << std::endl; return false;}}
 
 #define debug(...) printf("DEBUG :: " __VA_ARGS__);std::cout << std::endl;
 
@@ -606,10 +606,12 @@ bool ResponseParser::parse_msg_att_static(std::string &message_contents)
       }
       EXPECT_MATCH(" ");
 
+      std::cout << "Started on " << std::to_string(data[curr_pos]) << std::to_string(data[curr_pos+1])<< std::endl;
       if (!parse_nstring(message_contents))
       {
         PARSE_FAIL
       }
+      std::cout << "Ended on " << std::to_string(data[curr_pos]) << std::to_string(data[curr_pos+1])<< std::endl;
       PARSE_SUCCESS
     }
   }
@@ -627,15 +629,20 @@ bool ResponseParser::parse_literal(std::string &parsed_literal)
   EXPECT_MATCH("{");
   parse_number(length);
   EXPECT_MATCH("}");
-  EXPECT_MATCH("\r\n");
-  parsed_literal = data.substr(curr_pos, curr_pos+length);
-  curr_pos += parsed_literal.size();
+  if (!match_crlf())
+    PARSE_FAIL;
+  parsed_literal = "";
+  for (int i = 0; i < length; i++)
+  {
+    parsed_literal += data[curr_pos+i];
+  }
+  curr_pos += length;
   if (parsed_literal.size() < length)
   {
-    debug("Warning: Literal string received from server shorter than expected!")
-    curr_pos -= 3;
-    parsed_literal = parsed_literal.substr(0, parsed_literal.size()-3); // FIXME: This is an error and should not be a warning
+    throw std::runtime_error("Error: Literal string received from server shorter than expected!");
   }
+  std::cout << "parsed_literal.size(): " << parsed_literal.size() << std::endl;
+  std::cout << "length" << length << std::endl;
   PARSE_SUCCESS
 }
 
@@ -661,7 +668,6 @@ bool ResponseParser::parse_nstring(std::string &parsed_nstring)
   save_pos();
   if (match("NIL"))
   {
-    EXPECT_MATCH(" ");
     parsed_nstring = "";
   }
   else if (parse_string(parsed_nstring))
@@ -684,9 +690,8 @@ bool ResponseParser::parse_msg_att(std::string &message_contents)
   {
     PARSE_FAIL
   }
-  while(true)
+  while(match(" "))
   {
-    if (!match(" ")) break;
     if (parse_msg_att_dynamic()){}
     else if (parse_msg_att_static(message_contents)){}
     else
@@ -792,49 +797,54 @@ bool ResponseParser::parse_response(std::unique_ptr<Response> &parsed_response)
 }
 
 
-bool ResponseParser::parse_resp_cond_auth()
+bool ResponseParser::parse_resp_cond_auth(std::unique_ptr<Response> &parsed_response)
 {
   save_pos();
-  if (!match("OK") && !match("PREAUTH"))
+  ResponseType type;
+  if (match("OK"))
+    type = ResponseType::OK;
+  else if (match("PREAUTH"))
+    type = ResponseType::PREAUTH;
+  else
     PARSE_FAIL;
   EXPECT_MATCH(" ");
   if (!parse_resp_text())
     PARSE_FAIL
+  parsed_response = std::make_unique<StatusResponse>(type, "", "");
   PARSE_SUCCESS
 }
 
-bool ResponseParser::parse_greeting()
+bool ResponseParser::parse_greeting(std::unique_ptr<Response> &parsed_response)
 {
   save_pos();
   EXPECT_MATCH("*");
   EXPECT_MATCH(" ");
-  if (!parse_resp_cond_auth())
+  if (!parse_resp_cond_auth(parsed_response))
   {
     PARSE_FAIL
   }
   PARSE_SUCCESS
 }
 
-std::unique_ptr<Response> ResponseParser::parse(std::string _data)
+bool ResponseParser::parse_next(std::unique_ptr<Response> &parsed_response)
 {
-  curr_pos = 0;
-  data = _data;
+  size_t start_pos = curr_pos;
+  if (curr_pos >= data.size())
+    return false; // Reached end of data
 
-  std::cout << "ResponseParser: Parsing \"" << data << "\"." << std::endl;
-  std::unique_ptr<Response> parsed_response;
   if(parse_response(parsed_response))
   {
   }
-  else if(parse_greeting())
+  else if(parse_greeting(parsed_response))
   {
   }
   else
   {
     debug("Parsing failed.");
-    throw std::runtime_error("Didn't understand the server's response!");
+    throw std::runtime_error(std::format("Didn't understand the server's response! Response data: {}", data.substr(start_pos, data.size())));
   }
-
+  assert(pos_stack.empty());
   assert(parsed_response != nullptr);
   debug("Parsing succeeded.");
-  return parsed_response;
+  return true;
 }
