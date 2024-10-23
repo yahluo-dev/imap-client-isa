@@ -637,7 +637,7 @@ bool ResponseParser::parse_literal(std::string &parsed_literal)
     parsed_literal += data[curr_pos+i];
   }
   curr_pos += length;
-  if (parsed_literal.size() < length)
+  if (parsed_literal.size() < static_cast<size_t>(length))
   {
     throw std::runtime_error("Error: Literal string received from server shorter than expected!");
   }
