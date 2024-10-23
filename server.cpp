@@ -99,8 +99,7 @@ std::unique_ptr<Response> Server::receive()
 
 }
 
-TLSServer::TLSServer(const std::string hostname, const std::string port)
-  : Server(hostname, port)
+Server::~Server()
 {
-  throw std::logic_error("Not implemented");
+  close(client_socket);
 }

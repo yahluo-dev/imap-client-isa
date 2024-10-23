@@ -9,20 +9,14 @@
 
 class Server
 {
-  private:
+  protected:
   std::queue<std::unique_ptr<Response>> response_buffer;
   int client_socket;
   public:
   Server(const std::string hostname, const std::string port);
+  ~Server();
   void send(std::unique_ptr<Command> command);
   std::unique_ptr<Response> receive();
-};
-
-class TLSServer : public Server
-{
-  private:
-  public:
-  TLSServer(const std::string hostname, const std::string port);
 };
 
 #endif // SERVER_H_
