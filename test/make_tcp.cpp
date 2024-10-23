@@ -35,7 +35,7 @@ TEST(CommandMakeTcpTests, Search)
 
 TEST(CommandMakeTcpTests, Fetch)
 {
-  std::string expected = std::string("a004 FETCH 1 2 3 5 BODY[]\r\n");
+  std::string expected = std::string("a004 FETCH 1,2,3,5 BODY[]\r\n");
   std::vector<uint32_t> seq_numbers = {1,2,3,5};
   FetchCommand command = FetchCommand("a004", seq_numbers);
 
