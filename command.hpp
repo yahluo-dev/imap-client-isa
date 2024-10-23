@@ -57,8 +57,9 @@ class FetchCommand: public Command
 {
   private:
   std::vector<uint32_t> sequence_set;
+  std::string data_item;
   public:
-  explicit FetchCommand(std::string _tag, std::vector<uint32_t> sequence_set);
+  explicit FetchCommand(std::string _tag, std::vector<uint32_t> sequence_set, std::string _data_item);
   std::string make_tcp() override;
 };
 

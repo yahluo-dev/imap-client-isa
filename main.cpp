@@ -6,6 +6,8 @@
 #include <fstream>
 #include <format>
 #include "main.hpp"
+#include "server.hpp"
+#include "tls_server.hpp"
 #include "session.hpp"
 #include "fnv.hpp"
 
@@ -57,7 +59,7 @@ int main(int argc, char *argv[])
   std::string server_hostname;
   bool use_tls = false;
 
-  bool only_new = false;
+  bool only_unseen = false;
   bool only_headers = false;
   std::string mailbox_name = "INBOX";
   std::string cert_dir = "/etc/ssl/certs";
@@ -92,7 +94,7 @@ int main(int argc, char *argv[])
       }
       case 'n':
       {
-        only_new = true;
+        only_unseen = true;
         break;
       }
       case 't':
@@ -169,11 +171,22 @@ int main(int argc, char *argv[])
     std::cout << "Creds: " << creds.username << ":" << creds.password << std::endl;
   }
 
-  std::unique_ptr<Session> session = std::make_unique<Session>(server_hostname, port_number);
+  std::unique_ptr<Server> server;
+
+  if (use_tls)
+  {
+    server = std::make_unique<TLSServer>(server_hostname, port_number);
+  }
+  else
+  {
+    server = std::make_unique<Server>(server_hostname, port_number);
+  }
+
+  std::unique_ptr<Session> session = std::make_unique<Session>(std::move(server));
   session->login(creds.username, creds.password);
   session->select(mailbox_name);
-  std::vector<uint32_t> seq_set = session->search();
-  std::vector<std::string> messages = session->fetch(seq_set);
+  std::vector<uint32_t> seq_set = session->search(only_unseen);
+  std::vector<std::string> messages = session->fetch(seq_set, only_headers);
 
   FNV fnv;
   for (const auto& message : messages)

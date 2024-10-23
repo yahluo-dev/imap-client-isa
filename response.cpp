@@ -32,6 +32,9 @@ std::ostream& operator<<(std::ostream& os, ResponseType response_type)
     case ResponseType::RECENT:
       os << std::string("RECENT");
       break;
+    case ResponseType::FLAGS:
+      os << std::string("FLAGS");
+      break;
   }
   return os;
 }

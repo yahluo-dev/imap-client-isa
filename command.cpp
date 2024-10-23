@@ -28,8 +28,8 @@ SearchCommand::SearchCommand(std::string _tag, std::string _search_criteria)
   : Command(_tag), search_criteria(_search_criteria)
 {}
 
-FetchCommand::FetchCommand(std::string _tag, std::vector<uint32_t> _sequence_set)
-  : Command(_tag), sequence_set(_sequence_set)
+FetchCommand::FetchCommand(std::string _tag, std::vector<uint32_t> _sequence_set, std::string _data_item)
+  : Command(_tag), sequence_set(_sequence_set), data_item(_data_item)
 {}
 
 std::string LoginCommand::make_tcp()
@@ -56,10 +56,13 @@ std::string SearchCommand::make_tcp()
 std::string FetchCommand::make_tcp()
 {
   std::string command_string = std::format("{} FETCH", tag);
-  for (const auto& num : sequence_set)
+  command_string += std::format(" {}", sequence_set[0]);
+  for (auto it = sequence_set.begin() + 1; it != sequence_set.end(); ++it)
   {
-    command_string += std::format(" {}", num);
+    command_string += std::format(",{}", *it);
   }
+  command_string += " ";
+  command_string += data_item;
   command_string += "\r\n";
 
   return command_string;
