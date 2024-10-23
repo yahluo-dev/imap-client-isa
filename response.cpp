@@ -72,7 +72,7 @@ std::string Response::get_text()
 }
 
 StatusResponse::StatusResponse(ResponseType _type, std::string _tag, std::string _text)
-  : text(_text), Response(_type), tag(_tag)
+  :  Response(_type), tag(_tag), text(_text)
 {}
 
 ResponseType StatusResponse::get_type()

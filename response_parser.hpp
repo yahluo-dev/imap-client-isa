@@ -19,7 +19,7 @@ class ResponseParser
   void pop_pos();
   public:
   ResponseParser(std::string _data)
-    : curr_pos(0), data(_data){};
+    : data(_data), curr_pos(0){};
 
   bool match(std::string expected);
   bool regex_match(std::regex expected);
