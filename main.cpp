@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
 
   if (use_tls)
   {
-    server = std::make_unique<TLSServer>(server_hostname, port_number);
+    server = std::make_unique<TLSServer>(server_hostname, port_number, cert_file, cert_dir);
   }
   else
   {

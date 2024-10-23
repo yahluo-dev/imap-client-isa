@@ -16,6 +16,20 @@ SSL_CTX *TLSServer::create_ssl_context()
     exit(EXIT_FAILURE);
   }
 
+  const char * cert_file_c_string = cert_file.empty() ? nullptr : cert_file.c_str();
+  if (cert_dir.empty())
+  {
+    throw std::runtime_error("cert_dir is an empty string!");
+  }
+
+  if (SSL_CTX_load_verify_locations(ctx, cert_file_c_string, cert_dir.c_str()) != 1)
+  {
+    std::cerr << "Error loading CA certificate directory" << std::endl;
+    ERR_print_errors_fp(stderr);
+    SSL_CTX_free(ctx);
+    exit(EXIT_FAILURE);
+  }
+
   return ctx;
 }
 
@@ -25,7 +39,8 @@ void TLSServer::send(std::unique_ptr<Command> command)
   SSL_write(ssl, to_send.c_str(), to_send.size());
 }
 
-TLSServer::TLSServer(const std::string hostname, const std::string port) : Server(hostname, port)
+TLSServer::TLSServer(const std::string hostname, const std::string port, const std::string _cert_file, const std::string _cert_dir)
+  : Server(hostname, port), cert_dir(_cert_dir), cert_file(_cert_file) // NOTE: Careful with argument order
 {
   std::cout << "TLSServer constructor called" << std::endl;
   SSL_load_error_strings();
