@@ -21,6 +21,8 @@ SSL_CTX *TLSServer::create_ssl_context()
   {
     throw std::runtime_error("cert_dir is an empty string!");
   }
+  std::cout << "Using certificate " << cert_file << std::endl;
+  std::cout << "Using certificate directory " << cert_dir << std::endl;
 
   if (SSL_CTX_load_verify_locations(ctx, cert_file_c_string, cert_dir.c_str()) != 1)
   {
@@ -33,6 +35,23 @@ SSL_CTX *TLSServer::create_ssl_context()
   return ctx;
 }
 
+std::string TLSServer::receive_inner()
+{
+  ssize_t bytes_recvd;
+  char buffer[RECVMESSAGE_MAXLEN] = {};
+  std::cout << "TLSServer receive_inner called" << std::endl;
+  if (-1 == (bytes_recvd = SSL_read(ssl, &buffer, RECVMESSAGE_MAXLEN)))
+  {
+    throw std::runtime_error("recv() failed");
+  }
+  if (bytes_recvd == 0)
+  {
+    ERR_print_errors_fp(stderr);
+    throw std::logic_error("Connection already terminated!");
+  }
+  return std::string(buffer, bytes_recvd);
+}
+
 void TLSServer::send(std::unique_ptr<Command> command)
 {
   std::string to_send = command->make_tcp();
@@ -43,12 +62,13 @@ TLSServer::TLSServer(const std::string hostname, const std::string port, const s
   : Server(hostname, port), cert_dir(_cert_dir), cert_file(_cert_file) // NOTE: Careful with argument order
 {
   std::cout << "TLSServer constructor called" << std::endl;
+  SSL_library_init();
   SSL_load_error_strings();
   OpenSSL_add_ssl_algorithms();
 
-  ctx = create_ssl_context();
+  create_ssl_context();
 
-  SSL *ssl = SSL_new(ctx);
+  ssl = SSL_new(ctx);
   SSL_set_fd(ssl, client_socket);
 
   if (SSL_connect(ssl) <= 0)

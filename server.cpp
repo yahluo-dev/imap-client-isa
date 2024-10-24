@@ -11,10 +11,10 @@
 #include "response.hpp"
 #include "response_parser.hpp"
 
-#define RECVMESSAGE_MAXLEN 4096
 
 Server::Server(const std::string hostname, const std::string port)
 {
+  std::cout << "Server constructor called" << std::endl;
   int rv;
   struct addrinfo hints = {0};
   struct addrinfo *p;
@@ -56,13 +56,25 @@ void Server::send(std::unique_ptr<Command> command)
   ::send(client_socket, to_send.c_str(), to_send.size(), 0);
 }
 
+std::string Server::receive_inner()
+{
+  ssize_t bytes_recvd;
+  char buffer[RECVMESSAGE_MAXLEN];
+  std::cout << "Server receive_inner called" << std::endl;
+  if (-1 == (bytes_recvd = recv(client_socket, &buffer, RECVMESSAGE_MAXLEN, 0)))
+  {
+    throw std::runtime_error("recv() failed");
+  }
+  if (bytes_recvd == 0)
+    throw std::logic_error("Connection already terminated!");
+  return std::string(buffer, bytes_recvd);
+}
+
 std::unique_ptr<Response> Server::receive()
 {
   std::unique_ptr<Response> returned;
-  char buffer[RECVMESSAGE_MAXLEN];
   std::string responses_data;
   std::vector<std::unique_ptr<Response>> parsed_responses;
-  ssize_t bytes_recvd;
 
   if (!response_buffer.empty())
   {
@@ -71,14 +83,11 @@ std::unique_ptr<Response> Server::receive()
     return returned; // If there's something in buffer, return it
   }
 
-  if (-1 == (bytes_recvd = recv(
-      client_socket, &buffer, RECVMESSAGE_MAXLEN, 0)))
-  {
-    throw std::runtime_error("recv() failed");
-  }
-  if (bytes_recvd == 0)
-    throw std::logic_error("Connection already terminated!");
-  responses_data.append(buffer, bytes_recvd);
+  std::string new_data;
+
+  new_data = receive_inner();
+  responses_data.append(new_data);
+
   if (responses_data.size() == RECVMESSAGE_MAXLEN &&
       responses_data.substr(responses_data.size()-2, responses_data.size()) != "\r\n")
   {
