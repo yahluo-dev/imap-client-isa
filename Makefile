@@ -39,7 +39,7 @@ $(LOGIN).tar:
 	tar -cvf $@ *.cpp *.hpp README.md
 
 clean:
-	$(RM) $(EXE) *.o
+	$(RM) $(EXE) *.o test/*.o
 
 .PHONY: clean $(LOGIN).tar
 
