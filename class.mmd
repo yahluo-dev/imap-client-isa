@@ -1,4 +1,4 @@
-%%{init: { "class": { "height": 300, "width": 300 } } }%%
+%%{init: { "class": { "height": 500, "width": 400 } } }%%
 classDiagram
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %% CLIENT
@@ -7,13 +7,13 @@ classDiagram
   class Client {
     -void print_prompt()
     +repl()
-    +ctrlc_handler(s: int)
   }
 
   note for Client "Handles interaction with the user, including a REPL in interactive mode"
 
   class ResponseParser {
-    +Response *create(m: string)
+    +ResponseParser(data: string)
+    +Response *parse_next()
   }
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -38,25 +38,28 @@ classDiagram
   }
 
   class LoginCommand {
-    +string user_name
-    +string password
+    -string user_name
+    -string password
+    +LoginCommand(tag: string, username: string, password: string)
   }
 
   %% AUTHD
 
   class SelectCommand {
     +string mailbox_name
+   +SelectCommand(tag: string, mailbox: string)
   }
 
   %% SELECTED
 
   class SearchCommand {
-    - searching criteria?
+   +SearchCommand(tag: string, search_criteria: string)
   }
 
   class FetchCommand {
     -vector<int> sequence_set
     -FetchType type
+    +FetchCommand(tag: string, seq_set: string, data_item: string)
   }
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -120,8 +123,7 @@ classDiagram
   note for Server "Implements low-level connection and TLS-related logic"
 
   class TLSServer {
-    +TLSServer(hostname, port)
-    -void init_tls()
+    +TLSServer(hostname: string, port: int, cert_files:string, cert_dir:string)
   }
 
   Server <|-- TLSServer
