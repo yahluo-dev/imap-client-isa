@@ -5,3 +5,12 @@ test-credentials
 test-outdir
 *.tar
 *.png
+doc/*.pdf
+doc/*.fdb_latexmk
+doc/*.aux
+doc/*.fls
+doc/*.log
+doc/*.gz
+doc/*.toc
+doc/.auctex-auto
+
