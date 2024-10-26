@@ -4,10 +4,10 @@
 #include "tls_server.hpp"
 
 
-SSL_CTX *TLSServer::create_ssl_context()
+void TLSServer::create_ssl_context()
 {
   const SSL_METHOD *method = SSLv23_client_method();
-  SSL_CTX *ctx = SSL_CTX_new(method);
+  ctx = SSL_CTX_new(method);
 
   if (!ctx)
   {
@@ -31,8 +31,6 @@ SSL_CTX *TLSServer::create_ssl_context()
     SSL_CTX_free(ctx);
     exit(EXIT_FAILURE);
   }
-
-  return ctx;
 }
 
 std::string TLSServer::receive_inner()

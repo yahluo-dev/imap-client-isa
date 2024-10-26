@@ -7,7 +7,7 @@
 class TLSServer : public Server
 {
   private:
-  SSL_CTX *create_ssl_context();
+  void create_ssl_context();
   SSL *ssl;
   SSL_CTX *ctx;
   std::string cert_dir;
