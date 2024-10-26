@@ -183,6 +183,7 @@ int main(int argc, char *argv[])
   }
 
   std::unique_ptr<Session> session = std::make_unique<Session>(std::move(server));
+  session->receive_greeting();
   session->login(creds.username, creds.password);
   session->select(mailbox_name);
   std::vector<uint32_t> seq_set = session->search(only_unseen);

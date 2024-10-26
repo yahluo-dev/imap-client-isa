@@ -1,27 +1,65 @@
 #include <iostream>
+#include <sstream>
 #include <memory>
 #include <stdexcept>
+#include <format>
 
 #include "command.hpp"
 #include "response.hpp"
 #include "session.hpp"
 #include "server.hpp"
 
+std::ostream& operator<<(std::ostream& os, ImapState response_type)
+{
+  switch(response_type)
+  {
+    case ImapState::GREETING:
+      os << std::string("GREETING");
+      break;
+    case ImapState::NAUTH:
+      os << std::string("NAUTH");
+      break;
+    case ImapState::AUTHD:
+      os << std::string("AUTHD");
+      break;
+    case ImapState::SELECTED:
+      os << std::string("SELECTED");
+      break;
+  }
+  return os;
+}
+
 std::string Session::get_new_tag()
 {
   return std::to_string(tag++);
 }
 
-Session::Session(const std::string hostname, const std::string port)
-  : tag(1)
+Session::Session(std::unique_ptr<Server> _server)
+  : state(ImapState::GREETING), tag(1),  server(std::move(_server))
+{}
+
+void Session::transition(ImapState _state)
 {
-  server = std::make_unique<Server>(hostname, port);
+  state = _state;
 }
 
+// LOGIN
+//    Arguments:  user name
+//                password
+//    Responses:  no specific responses for this command
+//    Result:     OK - login completed, now in authenticated state
+//                NO - login failure: user name or password rejected
+//                BAD - command unknown or arguments invalid
 void Session::login(const std::string username, const std::string password)
 {
-
-  std::unique_ptr<Response> greeting = server->receive();
+  if (state == ImapState::AUTHD)
+  {
+    return;
+  }
+  else if (state != ImapState::NAUTH)
+  {
+    throw std::logic_error("Cannot issue this command in current state.");
+  }
 
   std::unique_ptr<LoginCommand> login_command = std::make_unique<LoginCommand>("a001", username, password); // FIXME
 
@@ -38,29 +76,57 @@ void Session::login(const std::string username, const std::string password)
     else
     {
       std::cout << "[OK] Server: " << second_response->get_text() << std::endl;
+      transition(ImapState::AUTHD);
     }
   }
   else
   {
-      std::cout << "[NOT OK] Server: " << second_response->get_text() << std::endl;
+      std::cout << "[" << second_response->get_type() << "] Server: " << second_response->get_text() << std::endl;
+      throw std::runtime_error("LOGIN failed.");
+  }
+}
+
+void Session::unexpected_response(std::unique_ptr<Response> &response)
+{
+  std::stringstream ss;
+  ss << "Unexpected response in state " << state << ": " <<response->get_type();
+  throw std::runtime_error(ss.str());
+}
+
+void Session::receive_greeting()
+{
+  std::unique_ptr<Response> greeting = server->receive();
+
+  switch(greeting->get_type())
+  {
+    case ResponseType::OK:
+      transition(ImapState::NAUTH);
+      break;
+    case ResponseType::PREAUTH:
+      transition(ImapState::AUTHD); // Preauthenticated connection
+      break;
+    default:
+      unexpected_response(greeting);
+      break;
   }
 }
 
 
-// 6.3.1.  SELECT Command
-//
+// SELECT
 //    Arguments:  mailbox name
-//
 //    Responses:  REQUIRED untagged responses: FLAGS, EXISTS, RECENT
 //                REQUIRED OK untagged responses:  UNSEEN,  PERMANENTFLAGS,
 //                UIDNEXT, UIDVALIDITY
-//
 //    Result:     OK - select completed, now in selected state
 //                NO - select failure, now in authenticated state: no
 //                     such mailbox, can't access mailbox
 //                BAD - command unknown or arguments invalid
 void Session::select(const std::string mailbox)
 {
+  if (state != ImapState::AUTHD)
+  {
+    throw std::logic_error("Cannot issue this command in current state.");
+  }
   server->send(std::make_unique<SelectCommand>(get_new_tag(), mailbox));
 
   std::unique_ptr<Response> response;
@@ -72,30 +138,47 @@ void Session::select(const std::string mailbox)
   // The last one must be the one indicating OK status
   if (response->get_type() == ResponseType::OK)
   {
+    transition(ImapState::SELECTED);
   }
   else
   {
-    std::cout << "[" << response->get_type() << "] Server: " << response->get_type() << std::endl;
+    std::cout << "[" << response->get_type() << "] Server: " << response->get_text() << std::endl;
+    throw std::runtime_error("SELECT failed.");
   }
 }
 
-std::vector<uint32_t> Session::search()
-{
-  server->send(std::make_unique<SearchCommand>(get_new_tag(), "ALL"));
 
-  std::unique_ptr<Response> response;
+// SEARCH
+//    Arguments:  OPTIONAL [CHARSET] specification
+//                searching criteria (one or more)
+//    Responses:  REQUIRED untagged response: SEARCH
+//    Result:     OK - search completed
+//                NO - search error: can't search that [CHARSET] or
+//                     criteria
+//                BAD - command unknown or arguments invalid
+std::vector<uint32_t> Session::search(bool only_unseen)
+{
+  if (state != ImapState::SELECTED)
+  {
+    throw std::logic_error("Cannot issue this command in current state.");
+  }
+
+  server->send(std::make_unique<SearchCommand>(get_new_tag(),
+                                               only_unseen ? "UNSEEN" : "ALL"));
+
   std::unique_ptr<SearchResponse> search_results_response;
+  std::unique_ptr<Response> response;
   do // Skip through untagged responses
   {
     response = server->receive(); // FIXME IMPORTANT: Account for unsolicited data. Do we need concurrence because of that though? Unsolicited data is *always untagged*
     if (response->get_type() == ResponseType::SEARCH)
     {
       search_results_response = std::unique_ptr<SearchResponse>(dynamic_cast<SearchResponse *>(response.release()));
-      // TODO: What if the server doesn't send it?
+      response = std::make_unique<Response>(ResponseType::OK);
     }
   } while (response->get_tag() == "");
 
-  // Extract sequence set. We may have failed too.
+  // Extract sequence set. We may have as well failed.
   if (response->get_type() == ResponseType::OK)
   {
     std::cout << "Search OK" << std::endl;
@@ -103,16 +186,30 @@ std::vector<uint32_t> Session::search()
   }
   else
   {
-    std::cout << "[" << response->get_type() << "] Server: " << response->get_type() << std::endl;
-    throw std::runtime_error("Search failed");
+    std::cout << "[" << response->get_type() << "] Server: " << response->get_text() << std::endl;
+    throw std::runtime_error("SEARCH failed");
   }
 }
 
-std::string Session::fetch(std::vector<uint32_t> sequence_set)
+// FETCH Command
+//    Arguments:  sequence set
+//                message data item names or macro
+//    Responses:  untagged responses: FETCH
+//    Result:     OK - fetch completed
+//                NO - fetch error: can't fetch that data
+//                BAD - command unknown or arguments invalid
+std::vector<std::string> Session::fetch(std::vector<uint32_t> sequence_set, bool only_headers)
 {
-  server->send(std::make_unique<FetchCommand>(get_new_tag(), sequence_set));
+  if (state != ImapState::SELECTED)
+  {
+    throw std::logic_error("Cannot issue this command in current state.");
+  }
 
-  std::unique_ptr<FetchResponse> fetch_results_response;
+  server->send(std::make_unique<FetchCommand>(get_new_tag(), sequence_set,
+                                              only_headers ? "(BODY.PEEK[HEADER])"
+                                              : "BODY[]"));
+
+  std::vector<std::unique_ptr<FetchResponse>> fetch_results_responses;
   std::unique_ptr<Response> response;
 
   do
@@ -120,18 +217,24 @@ std::string Session::fetch(std::vector<uint32_t> sequence_set)
     response = server->receive();
     if (response->get_type() == ResponseType::FETCH)
     {
-      fetch_results_response = std::unique_ptr<FetchResponse>(dynamic_cast<FetchResponse *>(response.release()));
+      fetch_results_responses.push_back(std::unique_ptr<FetchResponse>(dynamic_cast<FetchResponse *>(response.release())));
+      response = std::make_unique<Response>(ResponseType::OK);
     }
   } while (response->get_tag() == "");
 
   if (response->get_type() == ResponseType::OK)
   {
     std::cout << "Fetch OK" << std::endl;
-    return fetch_results_response->get_message_data();
+    std::vector<std::string> result_vector;
+    for (const auto& response : fetch_results_responses)
+    {
+      result_vector.push_back(response->get_message_data());
+    }
+    return result_vector;
   }
   else
   {
-    std::cout << "[" << response->get_type() << "] Server: " << response->get_type() << std::endl;
-    throw std::runtime_error("Search failed");
+    std::cout << "[" << response->get_type() << "] Server: " << response->get_text() << std::endl;
+    throw std::runtime_error("FETCH failed");
   }
 }
