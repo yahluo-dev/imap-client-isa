@@ -1,0 +1,16 @@
+stateDiagram-v2
+    [*] --> Greeting
+
+    Greeting --> NotAuthenticated: OK
+    Greeting --> Authenticated: PREAUTH
+    Greeting --> Logout: BYE
+
+    NotAuthenticated --> Authenticated: LOGIN
+    NotAuthenticated --> Logout: LOGOUT
+
+    Authenticated --> Selected: SELECT
+    Authenticated --> Logout: LOGOUT
+
+    Selected --> Logout: LOGOUT
+
+    Logout --> [*]

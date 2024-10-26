@@ -1,4 +1,5 @@
-\documentclass{report}
+\documentclass[a4]{report}
+\usepackage{graphicx}
 
 \title{IMAP Client with TLS support}
 \author{Iaroslav Vasilevskii}
@@ -10,25 +11,41 @@
 
 \chapter{Introduction}
 
+\textbf{imapcl} is an IMAP4rev1[RFC3501] client able to fetch messages from a server. Besides plain-text communication, it also supports communication secured by TLS with the help of the OpenSSL library.
+
 \section{IMAP}
 
-% Introduce the reader to IMAP and its significance. Compare to other similar protocols.
+\textbf{IMAP} Version 4rev1 is an application-level protocol that allows for access and manipulation of electronic mail messages on a server. In particular, it supports creating, deleting, and renaming mailboxes, checking for new messages, removing messages and manipulating flags.
+
+\section{SSL/TLS}
 
 \chapter{Design}
-
-\section{Diagrams}
-
-\subsection{Class diagram}
-
-\subsection{State diagram}
 
 \section{Details}
 
 \chapter{Implementation}
 
+The program is implemented in C++.
+
+\section{Dependencies}
+
+\begin{itemize}
+\item \texttt{make}
+\item \texttt{gcc}
+\item \texttt{OpenSSL}
+\item \texttt{googletest} (when building unit tests)
+\end{itemize}
+
+
 \section{Project file structure}
 
-\section{Design patterns used}
+\section{Elements}
+
+\subsection{Response parser}
+
+A handwritten backtracking recursive-descent parser is used to parse server responses according to the formal syntax specification in [RFC3501]. The parser structure closely follows the formal specification of the language.
+
+Even though backtracking is known to make the parser less effecient due to possible rescanning, and hence memoization is sometimes used, it was not implemented in the parser because the implemented grammar is non-recursive and comparatively simple, so the amount of backtracking that can happen is limited.
 
 \section{Limitations}
 
@@ -38,6 +55,28 @@
 
 \section{CLI Arguments}
 
+\texttt{\$ imapcl SERVER [-p port] [-T [-c certfile] [-C certaddr]] [-n] [-h] -a auth\_file [-b MAILBOX] -o out\_dir}
+
+\begin{table}[h]
+  \renewcommand*{\arraystretch}{1.0}
+  \centering
+  \begin{tabular}{|l|l|}
+    \hline
+    Option & Description\\
+    \hline
+    \texttt{-p PORT}      & Port to connect to. Default is 993 for IMAPS and 143 for plain IMAP.\\
+    \texttt{-T}          & Enables encryption (use IMAPS)\\
+    \texttt{-c FILE}     & Specify certificate file\\
+    \texttt{-C DIR}      & Specify certificate directory (default /etc/ssl/certs)\\
+    \texttt{-n}          & Only see new messages\\
+    \texttt{-h}          & Only fetch headers\\
+    \texttt{-a AUTH\_FILE}& File with login credentials to use\\
+    \texttt{-b MAILBOX}  & Mailbox to use on the server (default INBOX)\\
+    \texttt{-o OUT\_DIR}  & Directory to store downloaded messages\\
+    \hline
+  \end{tabular}
+\end{table}
+
 \section{Examples}
 
 \chapter{Testing}
@@ -46,8 +85,24 @@
 
 \section{Testing results}
 
+\chapter{Appendix}
+
+\section{Diagrams}
+
+\begin{figure}
+  \centering
+  \includegraphics*[width=0.5\textwidth]{imapcl-class.png}[h]
+  \caption{Class diagram}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics*[width=0.5\textwidth]{imapcl-state.png}[h]
+  \caption{State diagram}
+\end{figure}
+
 \chapter{Bibliography}
 
-% Citations
+
 
 \end{document}
