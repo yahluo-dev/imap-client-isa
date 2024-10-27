@@ -20,6 +20,8 @@ enum class ResponseType
   FLAGS
 };
 
+std::string responseTypeToString(ResponseType response_type);
+
 std::ostream& operator<<(std::ostream& os, ResponseType response_type);
 
 class Response

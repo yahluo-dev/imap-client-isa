@@ -5,22 +5,26 @@
 #include <stdio.h>
 #include <assert.h>
 #include "response_parser.hpp"
+#include "logger.hpp"
 
 #define PARSE_FAIL {                                                    \
-    for(size_t i = 0; i < pos_stack.size();i++)std::cout<<"\t";            \
-    std::cout << "DEBUG :: " << __func__ << "() failed on char " << curr_pos << "("<< data[curr_pos] << ")" <<std::endl; \
+    logger.parser_debug_log(pos_stack.size(), curr_pos, __func__, "Failed."); \
     restore_pos();return false;                                         \
 }
+
 #define PARSE_SUCCESS {                                     \
-    for(size_t i = 0; i < pos_stack.size();i++)std::cout<<"\t";            \
-    std::cout << "DEBUG :: " << __func__ << "() succeeded on char " << curr_pos << "("<< data[curr_pos] << ")" <<std::endl; \
+    logger.parser_debug_log(pos_stack.size(), curr_pos, __func__, "Succeeded."); \
     pop_pos();                                                          \
     return true;                                                        \
 }
 
-#define EXPECT_MATCH(s) {if (!match(s)){restore_pos();std::cout << s " expected, " << std::endl; return false;}}
-
-#define debug(...) printf("DEBUG :: " __VA_ARGS__);std::cout << std::endl;
+#define EXPECT_MATCH(s) {\
+  if (!match(s))\
+  {\
+    restore_pos();\
+    return false;\
+  }\
+}
 
 void ResponseParser::save_pos()
 {
@@ -606,12 +610,10 @@ bool ResponseParser::parse_msg_att_static(std::string &message_contents)
       }
       EXPECT_MATCH(" ");
 
-      std::cout << "Started on " << std::to_string(data[curr_pos]) << std::to_string(data[curr_pos+1])<< std::endl;
       if (!parse_nstring(message_contents))
       {
         PARSE_FAIL
       }
-      std::cout << "Ended on " << std::to_string(data[curr_pos]) << std::to_string(data[curr_pos+1])<< std::endl;
       PARSE_SUCCESS
     }
   }
@@ -641,8 +643,6 @@ bool ResponseParser::parse_literal(std::string &parsed_literal)
   {
     throw std::runtime_error("Error: Literal string received from server shorter than expected!");
   }
-  std::cout << "parsed_literal.size(): " << parsed_literal.size() << std::endl;
-  std::cout << "length" << length << std::endl;
   PARSE_SUCCESS
 }
 
@@ -726,7 +726,6 @@ bool ResponseParser::parse_message_data(std::unique_ptr<Response> &parsed_respon
       PARSE_FAIL
     }
     parsed_response = std::make_unique<FetchResponse>(message_contents);
-    std::cout << "Parsed message contents: " << std::endl << message_contents << std::endl;
   }
   else
   {
@@ -755,7 +754,6 @@ bool ResponseParser::parse_response_data(std::unique_ptr<Response> &parsed_respo
   }
   else if (parse_mailbox_data(parsed_response))
   {
-    std::cout << "Parsed mailbox data" << std::endl;
   }
   else if (parse_message_data(parsed_response)){}
   // else if (parse_capability_data()){}
@@ -840,11 +838,11 @@ bool ResponseParser::parse_next(std::unique_ptr<Response> &parsed_response)
   }
   else
   {
-    debug("Parsing failed.");
+    logger.error_log("Parsing failed.");
     throw std::runtime_error(std::format("Didn't understand the server's response! Response data: {}", data.substr(start_pos, data.size())));
   }
   assert(pos_stack.empty());
   assert(parsed_response != nullptr);
-  debug("Parsing succeeded.");
+  logger.debug_log("Parsing succeeded.");
   return true;
 }

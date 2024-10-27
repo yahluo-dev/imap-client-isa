@@ -1,6 +1,7 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <iostream>
+#include <format>
 #include "tls_server.hpp"
 
 
@@ -11,21 +12,21 @@ void TLSServer::create_ssl_context()
 
   if (!ctx)
   {
-    std::cerr << "SSL context creation failed!" << std::endl;
+    logger.error_log("SSL context creation failed!");
     ERR_print_errors_fp(stderr);
     exit(EXIT_FAILURE);
   }
 
 
-  std::cout << "Using certificate " << cert_file << std::endl;
-  std::cout << "Using certificate directory " << cert_dir << std::endl;
+  logger.debug_log(std::format("Using certificate {}", cert_file));
+  logger.debug_log(std::format("Using certificate directory {}", cert_dir));
 
   const char *cert_file_c_string = cert_file.empty() ? nullptr : cert_file.c_str();
   const char *cert_dir_c_string = cert_dir.empty() ? nullptr : cert_dir.c_str();
 
   if (SSL_CTX_load_verify_locations(ctx, cert_file_c_string, cert_dir_c_string) != 1)
   {
-    std::cerr << "Error loading CA certificate directory" << std::endl;
+    logger.error_log("Error loading CA certificate directory");
     ERR_print_errors_fp(stderr);
     SSL_CTX_free(ctx);
     exit(EXIT_FAILURE);
@@ -38,7 +39,6 @@ std::string TLSServer::receive_inner()
 {
   ssize_t bytes_recvd;
   char buffer[RECVMESSAGE_MAXLEN] = {};
-  std::cout << "TLSServer receive_inner called" << std::endl;
   if (-1 == (bytes_recvd = SSL_read(ssl, &buffer, RECVMESSAGE_MAXLEN)))
   {
     throw std::runtime_error("recv() failed");
@@ -60,7 +60,6 @@ void TLSServer::send(std::unique_ptr<Command> command)
 TLSServer::TLSServer(const std::string hostname, const std::string port, const std::string _cert_file, const std::string _cert_dir)
   : Server(hostname, port), cert_dir(_cert_dir), cert_file(_cert_file) // NOTE: Careful with argument order
 {
-  std::cout << "TLSServer constructor called" << std::endl;
   SSL_library_init();
   SSL_load_error_strings();
   OpenSSL_add_ssl_algorithms();

@@ -25,6 +25,9 @@ std::ostream& operator<<(std::ostream& os, ImapState response_type)
     case ImapState::SELECTED:
       os << std::string("SELECTED");
       break;
+    case ImapState::LOGOUT:
+      os << std::string("LOGOUT");
+      break;
   }
   return os;
 }
@@ -35,7 +38,7 @@ std::string Session::get_new_tag()
 }
 
 Session::Session(std::unique_ptr<Server> _server)
-  : state(ImapState::GREETING), tag(1),  server(std::move(_server))
+  : state(ImapState::GREETING), tag(1),  server(std::move(_server)), logger(std::cerr)
 {}
 
 void Session::transition(ImapState _state)
@@ -75,13 +78,13 @@ void Session::login(const std::string username, const std::string password)
     }
     else
     {
-      std::cout << "[OK] Server: " << second_response->get_text() << std::endl;
+      logger.info_log(std::format("[OK] Server: {}", second_response->get_text()));
       transition(ImapState::AUTHD);
     }
   }
   else
   {
-      std::cout << "[" << second_response->get_type() << "] Server: " << second_response->get_text() << std::endl;
+      logger.info_log(std::format("[{}] Server: {}", responseTypeToString(second_response->get_type()), second_response->get_text()));
       throw std::runtime_error("LOGIN failed.");
   }
 }
@@ -142,7 +145,7 @@ void Session::select(const std::string mailbox)
   }
   else
   {
-    std::cout << "[" << response->get_type() << "] Server: " << response->get_text() << std::endl;
+    logger.info_log(std::format("[{}] Server: {}", responseTypeToString(response->get_type()), response->get_text()));
     throw std::runtime_error("SELECT failed.");
   }
 }
@@ -181,12 +184,12 @@ std::vector<uint32_t> Session::search(bool only_unseen)
   // Extract sequence set. We may have as well failed.
   if (response->get_type() == ResponseType::OK)
   {
-    std::cout << "Search OK" << std::endl;
+    logger.info_log("Search OK");
     return search_results_response->get_seq_numbers();
   }
   else
   {
-    std::cout << "[" << response->get_type() << "] Server: " << response->get_text() << std::endl;
+    logger.error_log(std::format("[{}] Server: {}", responseTypeToString(response->get_type()), response->get_text()));
     throw std::runtime_error("SEARCH failed");
   }
 }
@@ -224,7 +227,7 @@ std::vector<std::string> Session::fetch(std::vector<uint32_t> sequence_set, bool
 
   if (response->get_type() == ResponseType::OK)
   {
-    std::cout << "Fetch OK" << std::endl;
+    logger.info_log("Fetch OK");
     std::vector<std::string> result_vector;
     for (const auto& response : fetch_results_responses)
     {
@@ -234,7 +237,7 @@ std::vector<std::string> Session::fetch(std::vector<uint32_t> sequence_set, bool
   }
   else
   {
-    std::cout << "[" << response->get_type() << "] Server: " << response->get_text() << std::endl;
+    logger.error_log(std::format("[{}] Server: {}", responseTypeToString(response->get_type()), response->get_text()));
     throw std::runtime_error("FETCH failed");
   }
 }

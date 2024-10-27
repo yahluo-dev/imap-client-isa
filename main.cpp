@@ -189,6 +189,9 @@ int main(int argc, char *argv[])
   std::vector<uint32_t> seq_set = session->search(only_unseen);
   std::vector<std::string> messages = session->fetch(seq_set, only_headers);
 
+  std::cout << std::format("Fetched {} {}.", messages.size(),
+                only_unseen ? "unseen messages" : "messages") << std::endl;
+
   FNV fnv;
   for (const auto& message : messages)
   {

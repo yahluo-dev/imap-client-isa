@@ -13,8 +13,8 @@
 
 
 Server::Server(const std::string hostname, const std::string port)
+  : logger(std::cerr)
 {
-  std::cout << "Server constructor called" << std::endl;
   int rv;
   struct addrinfo hints = {0};
   struct addrinfo *p;

@@ -5,7 +5,9 @@
 #include <stack>
 #include <regex>
 #include <memory>
+#include <iostream>
 
+#include "parser_logger.hpp"
 #include "response.hpp"
 
 class ResponseParser
@@ -17,9 +19,10 @@ class ResponseParser
   void save_pos();
   void restore_pos();
   void pop_pos();
+  ParserLogger logger;
   public:
   ResponseParser(std::string _data)
-    : data(_data), curr_pos(0){};
+    : data(_data), curr_pos(0), logger(std::cerr, _data, LogLevel::ERROR) {};
 
   bool match(std::string expected);
   bool regex_match(std::regex expected);

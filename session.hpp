@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 #include "server.hpp"
+#include "logger.hpp"
 
 enum class ImapState
 {
@@ -26,7 +27,7 @@ class Session
   std::unique_ptr<Server> server;
   std::string get_new_tag();
   void transition(ImapState state);
-
+  Logger logger;
   public:
   Session(std::unique_ptr<Server> _server);
   void login(const std::string username, const std::string password);

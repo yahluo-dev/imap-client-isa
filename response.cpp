@@ -39,6 +39,33 @@ std::ostream& operator<<(std::ostream& os, ResponseType response_type)
   return os;
 }
 
+std::string responseTypeToString(ResponseType response_type)
+{
+  switch(response_type)
+  {
+    case ResponseType::OK:
+      return std::string("OK");
+    case ResponseType::NO:
+      return std::string("NO");
+    case ResponseType::BAD:
+      return std::string("BAD");
+    case ResponseType::PREAUTH:
+      return std::string("PREAUTH");
+    case ResponseType::BYE:
+      return std::string("BYE");
+    case ResponseType::SEARCH:
+      return std::string("SEARCH");
+    case ResponseType::FETCH:
+      return std::string("FETCH");
+    case ResponseType::EXISTS:
+      return std::string("EXISTS");
+    case ResponseType::RECENT:
+      return std::string("RECENT");
+    case ResponseType::FLAGS:
+      return std::string("FLAGS");
+  }
+}
+
 Response::Response(ResponseType _type)
 : type(_type)
 {
@@ -75,7 +102,7 @@ std::string Response::get_text()
 }
 
 StatusResponse::StatusResponse(ResponseType _type, std::string _tag, std::string _text)
-  :  Response(_type), tag(_tag), text(_text)
+  :  Response(_type), text(_text), tag(_tag)
 {}
 
 ResponseType StatusResponse::get_type()
