@@ -16,21 +16,22 @@ void TLSServer::create_ssl_context()
     exit(EXIT_FAILURE);
   }
 
-  const char * cert_file_c_string = cert_file.empty() ? nullptr : cert_file.c_str();
-  if (cert_dir.empty())
-  {
-    throw std::runtime_error("cert_dir is an empty string!");
-  }
+
   std::cout << "Using certificate " << cert_file << std::endl;
   std::cout << "Using certificate directory " << cert_dir << std::endl;
 
-  if (SSL_CTX_load_verify_locations(ctx, cert_file_c_string, cert_dir.c_str()) != 1)
+  const char *cert_file_c_string = cert_file.empty() ? nullptr : cert_file.c_str();
+  const char *cert_dir_c_string = cert_dir.empty() ? nullptr : cert_dir.c_str();
+
+  if (SSL_CTX_load_verify_locations(ctx, cert_file_c_string, cert_dir_c_string) != 1)
   {
     std::cerr << "Error loading CA certificate directory" << std::endl;
     ERR_print_errors_fp(stderr);
     SSL_CTX_free(ctx);
     exit(EXIT_FAILURE);
   }
+
+  SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, nullptr);
 }
 
 std::string TLSServer::receive_inner()
