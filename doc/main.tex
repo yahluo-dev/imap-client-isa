@@ -1,5 +1,11 @@
 \documentclass[a4]{report}
 \usepackage{graphicx}
+\usepackage[
+backend=biber,
+style=alphabetic,
+sorting=ynt
+]{biblatex}
+\addbibresource{bibliography.bib}
 
 \title{IMAP Client with TLS support}
 \author{Iaroslav Vasilevskii}
@@ -11,7 +17,7 @@
 
 \chapter{Introduction}
 
-\textbf{imapcl} is an IMAP4rev1[RFC3501] client able to fetch messages from a server. Besides plain-text communication, it also supports communication secured by TLS with the help of the OpenSSL library.
+\textbf{imapcl} is an IMAP4rev1\cite{rfc3501} client able to fetch messages from a server. Besides plain-text communication, it also supports communication secured by TLS with the help of the OpenSSL library.
 
 \section{IMAP}
 
@@ -21,7 +27,7 @@
 
 \chapter{Design}
 
-\section{Details}
+% TODO: About concurrency, parsing, cli...
 
 \chapter{Implementation}
 
@@ -91,18 +97,20 @@ Even though backtracking is known to make the parser less effecient due to possi
 
 \begin{figure}
   \centering
-  \includegraphics*[width=0.5\textwidth]{imapcl-class.png}[h]
+  \includegraphics*[width=\textwidth]{imapcl-class.png}[h]
   \caption{Class diagram}
+  \label{class}
 \end{figure}
 
 \begin{figure}
   \centering
   \includegraphics*[width=0.5\textwidth]{imapcl-state.png}[h]
   \caption{State diagram}
+  \label{state}
 \end{figure}
 
 \chapter{Bibliography}
 
-
+\printbibliography
 
 \end{document}
