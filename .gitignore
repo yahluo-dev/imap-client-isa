@@ -12,5 +12,9 @@ doc/*.fls
 doc/*.log
 doc/*.gz
 doc/*.toc
+doc/*.bbl
+doc/*.bcf
+doc/*.blg
+doc/*.run.xml
 doc/.auctex-auto
 
