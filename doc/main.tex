@@ -1,5 +1,6 @@
 \documentclass[a4]{report}
 \usepackage{graphicx}
+\usepackage{xcolor}
 \usepackage[
 backend=biber,
 style=alphabetic,
@@ -9,6 +10,10 @@ sorting=ynt
 
 \title{IMAP Client with TLS support}
 \author{Iaroslav Vasilevskii}
+
+\newcommand{\TODO}{
+    \textbf{\textcolor{red}{TODO}}
+}
 
 \begin{document}
 
@@ -27,7 +32,11 @@ sorting=ynt
 
 \chapter{Design}
 
-% TODO: About concurrency, parsing, cli...
+% About concurrency, parsing, cli...
+
+\TODO
+
+IMAP is a comparatively complex protocol, much more so than the simpler alternative of POP3, and its context-free grammar asks for a more advanced parsing method than mere regular expression matching. Recursive descent parsers, on the other hand, are widely used for analyzing context-free languages, including network protocols. The parser implementation thus turned out straightforward, albeit requiring slightly more care and debugging.
 
 \chapter{Implementation}
 
@@ -45,17 +54,56 @@ The program is implemented in C++.
 
 \section{Project file structure}
 
+\begin{itemize}
+\item \texttt{Makefile} - Makefile managing the build process
+\item \texttt{command.hpp, command.cpp} - Command class representing commands sent by the user
+\item \texttt{fnv.hpp, fnv.cpp} - Fowler-Noll-Vo\cite{eastlake-fnv-29} hashing function class for creating unique filenames
+\item \texttt{logger.hpp, logger.cpp} - Class implementing logging capabilities with adjustable logging level
+\item \texttt{main.hpp, main.cpp} - Main function and argument parsing
+\item \texttt{message.hpp}
+\item \texttt{parser\_logger.hpp, parser\_logger.cpp} - Logger subclass for the recursive descent parser
+\item \texttt{response.hpp, response.cpp} - Response class representing messages sent by the server
+\item \texttt{response\_parser.hpp, response\_parser.cpp} - Class for parsing server response data
+\item \texttt{server.hpp, server.cpp} - Class implementing low-level connection management
+\item \texttt{tls\_server.hpp, tls\_server.cpp} - Server subclass adding SSL/TLS initialization and management
+\item \texttt{session.hpp, session.cpp} - Class managing user actions on a high level
+\item \texttt{client.hpp, client.cpp} - \TODO
+\item \texttt{test/} - Directory with test files, further documented in \textit{Testing}.
+\end{itemize}
+
 \section{Elements}
 
 \subsection{Response parser}
 
 A handwritten backtracking recursive-descent parser is used to parse server responses according to the formal syntax specification in [RFC3501]. The parser structure closely follows the formal specification of the language.
 
-Even though backtracking is known to make the parser less effecient due to possible rescanning, and hence memoization is sometimes used, it was not implemented in the parser because the implemented grammar is non-recursive and comparatively simple, so the amount of backtracking that can happen is limited.
+Even though backtracking is known to make the parser less effecient due to possible rescanning, and hence memoization is sometimes used, it was not implemented in the parser because the implemented grammar is comparatively simple, so the amount of backtracking that can happen is limited.
+
+\subsection{Session}
+
+The \texttt{Session} class represents a connection to the IMAP server. It features a finite-state machine for keeping track of the communication state and methods for individual actions like \texttt{fetch}, \texttt{select}, \texttt{search} and \texttt{login}.
+
+\subsection{Command}
+
+The \texttt{Command} class contains \texttt{type} and \texttt{tag} protected members, with the tag being empty for non-tagged responses. They also have a \texttt{make\_tcp()} method, which marshals the command information into the form of a protocol message. Specialized commands contain additional fields and methods for working with relevant data.
+
+\subsection{Response}
+
+The response class has a \texttt{type}, as well as a \texttt{tag} (again, empty for non-tagged responses).
+
+\subsection{Logger}
+
+The \texttt{Logger} class has 3 methods for logging debug information, errors and general information accordingly.
+
+The \texttt{ParserLogger} subclass also has the \texttt{parser\_debug\_log} method for visualizing current depth of call stack, method names, and current character index along with the character itself.
+
+\subsection{Server}
+
+The \texttt{Server} class has a buffer for incoming responses, and constructor which inicializes the connection, as well as a \texttt{receive()} method, returning the received response. The constructor throws an exception if the attempt to establish the connection is unsuccessful.
 
 \section{Limitations}
 
-% Justification
+\TODO % Justification
 
 \chapter{Usage}
 
@@ -89,7 +137,15 @@ Even though backtracking is known to make the parser less effecient due to possi
 
 \section{Unit tests}
 
+\begin{itemize}
+\item \texttt{test/make\_tcp.cpp} - \texttt{make\_tcp()} tests for \texttt{Command} and its subclasses
+\item \texttt{test/parse\_response.cpp} - Tests for the response parser
+\item \texttt{test/test\_main.cpp} - Initialization of the Google Test framework
+\end{itemize}
+
 \section{Testing results}
+
+\TODO
 
 \chapter{Appendix}
 
@@ -108,8 +164,6 @@ Even though backtracking is known to make the parser less effecient due to possi
   \caption{State diagram}
   \label{state}
 \end{figure}
-
-\chapter{Bibliography}
 
 \printbibliography
 
