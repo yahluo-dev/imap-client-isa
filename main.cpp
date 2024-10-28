@@ -11,47 +11,7 @@
 #include "session.hpp"
 #include "fnv.hpp"
 #include "tls_receiver.hpp"
-
-typedef struct {
-  std::string username;
-  std::string password;
-} Credential_t;
-
-std::regex cred_file_username_regex("username=([a-zA-Z0-9@.-]{1,256})", std::regex_constants::ECMAScript);
-std::regex cred_file_password_regex("password=([a-zA-Z0-9]{1,20})", std::regex_constants::ECMAScript);
-
-Credential_t parse_cred_file(std::string filename)
-{
-  std::string line;
-  std::smatch match;
-  std::ifstream auth_file_stream(filename);
-
-  Credential_t credentials;
-
-  std::getline(auth_file_stream, line);
-
-  if (std::regex_search(line, match, cred_file_username_regex))
-  {
-    credentials.username = match.str(1);
-  }
-  else
-  {
-    throw std::runtime_error("Auth file invalid!");
-  }
-
-  std::getline(auth_file_stream, line);
-
-  if (std::regex_search(line, match, cred_file_password_regex))
-  {
-    credentials.password = match.str(1);
-  }
-  else
-  {
-    throw std::runtime_error("Auth file invalid!");
-  }
-
-  return credentials;
-}
+#include "credential.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -59,6 +19,8 @@ int main(int argc, char *argv[])
   std::string port_number;
   std::string server_hostname;
   bool use_tls = false;
+
+  Logger logger(std::cerr);
 
   bool only_unseen = false;
   bool only_headers = false;
@@ -157,19 +119,11 @@ int main(int argc, char *argv[])
     std::cout << "Invalid usage: Too many arguments" << std::endl;
   }
 
-  std::cout << "port number: " << port_number << std::endl;
-  std::cout << "hostname: " << server_hostname << std::endl;
-  std::cout << "use_tls: " << use_tls << std::endl;
-
-  Credential_t creds = parse_cred_file(auth_file);
+  Credentials creds = Credentials(auth_file);
 
   if (auth_file.empty())
   {
     std::cout << "Credentials file must be specified." << std::endl;
-  }
-  else
-  {
-    std::cout << "Creds: " << creds.username << ":" << creds.password << std::endl;
   }
 
   std::unique_ptr<Server> server;
@@ -187,11 +141,22 @@ int main(int argc, char *argv[])
   }
 
   std::unique_ptr<Session> session = std::make_unique<Session>(std::move(server), std::move(receiver));
-  session->receive_greeting();
-  session->login(creds.username, creds.password);
-  session->select(mailbox_name);
-  std::vector<uint32_t> seq_set = session->search(only_unseen);
-  std::vector<std::string> messages = session->fetch(seq_set, only_headers);
+
+ std::vector<uint32_t> seq_set;
+ std::vector<std::string> messages;
+  try
+  {
+    session->receive_greeting();
+    session->login(creds);
+    session->select(mailbox_name);
+    seq_set = session->search(only_unseen);
+    messages = session->fetch(seq_set, only_headers);
+  }
+  catch (std::exception &ex)
+  {
+    logger.error_log(ex.what());
+    return 1;
+  }
 
   std::cout << std::format("Fetched {} {}.", messages.size(),
                 only_unseen ? "unseen messages" : "messages") << std::endl;
