@@ -28,6 +28,7 @@ class Session
   std::string get_new_tag();
   void transition(ImapState state);
   Logger logger;
+  void unexpected_response(std::unique_ptr<Response> &response);
   public:
   Session(std::unique_ptr<Server> _server);
   void login(const std::string username, const std::string password);
@@ -35,7 +36,6 @@ class Session
   std::vector<uint32_t> search(bool only_unseen);
   std::vector<std::string> fetch(std::vector<uint32_t> sequence_set,bool only_headers);
   void receive_greeting();
-  void unexpected_response(std::unique_ptr<Response> &response);
 };
 
 #endif // SESSION_H_
