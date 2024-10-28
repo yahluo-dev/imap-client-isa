@@ -54,11 +54,25 @@ void Session::notify_incoming(std::unique_ptr<Response> response)
   incoming_cv.notify_one();
 }
 
+void Session::receiver_notify_failed(std::exception &ex)
+{
+  receiver_ex = ex;
+  transition(ImapState::ERROR);
+  incoming_cv.notify_one();
+}
+
 std::unique_ptr<Response> Session::wait_for_response()
 {
   std::unique_lock ul(incoming_mutex);
 
-  incoming_cv.wait(ul, [] { return !response_queue.empty(); });
+  if (!incoming_cv.wait_for(ul, std::chrono::seconds(3), [] { return !response_queue.empty(); }))
+  {
+    throw std::runtime_error("Connection established but timed out waiting for response.");
+  }
+  if (state == ImapState::ERROR)
+  {
+    throw std::runtime_error(std::format("Connection error: {}", receiver_ex.what()));
+  }
 
   std::unique_ptr<Response> response = std::move(response_queue.front());
   response_queue.pop();
@@ -97,7 +111,7 @@ void Session::transition(ImapState _state)
 //    Result:     OK - login completed, now in authenticated state
 //                NO - login failure: user name or password rejected
 //                BAD - command unknown or arguments invalid
-void Session::login(const std::string username, const std::string password)
+void Session::login(Credentials &creds)
 {
   if (state == ImapState::AUTHD)
   {
@@ -108,7 +122,7 @@ void Session::login(const std::string username, const std::string password)
     throw std::logic_error("Cannot issue this command in current state.");
   }
 
-  std::unique_ptr<LoginCommand> login_command = std::make_unique<LoginCommand>("a001", username, password); // FIXME
+  std::unique_ptr<LoginCommand> login_command = std::make_unique<LoginCommand>("a001", creds.get_username(), creds.get_password()); // FIXME
 
   server->send(std::move(login_command));
 
@@ -122,13 +136,13 @@ void Session::login(const std::string username, const std::string password)
     }
     else
     {
-      logger.info_log(std::format("[OK] Server: {}", second_response->get_text()));
+      logger.debug_log(std::format("[OK] Server: {}", second_response->get_text()));
       transition(ImapState::AUTHD);
     }
   }
   else
   {
-      logger.info_log(std::format("[{}] Server: {}", responseTypeToString(second_response->get_type()), second_response->get_text()));
+      logger.error_log(std::format("[{}] Server: {}", responseTypeToString(second_response->get_type()), second_response->get_text()));
       throw std::runtime_error("LOGIN failed.");
   }
 }
@@ -189,7 +203,7 @@ void Session::select(const std::string mailbox)
   }
   else
   {
-    logger.info_log(std::format("[{}] Server: {}", responseTypeToString(response->get_type()), response->get_text()));
+    logger.error_log(std::format("[{}] Server: {}", responseTypeToString(response->get_type()), response->get_text()));
     throw std::runtime_error("SELECT failed.");
   }
 }
@@ -228,7 +242,7 @@ std::vector<uint32_t> Session::search(bool only_unseen)
   // Extract sequence set. We may have as well failed.
   if (response->get_type() == ResponseType::OK)
   {
-    logger.info_log("Search OK");
+    logger.debug_log("Search OK");
     return search_results_response->get_seq_numbers();
   }
   else
@@ -271,7 +285,7 @@ std::vector<std::string> Session::fetch(std::vector<uint32_t> sequence_set, bool
 
   if (response->get_type() == ResponseType::OK)
   {
-    logger.info_log("Fetch OK");
+    logger.debug_log("Fetch OK");
     std::vector<std::string> result_vector;
     for (const auto& response : fetch_results_responses)
     {

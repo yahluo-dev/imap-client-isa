@@ -27,12 +27,12 @@ std::string Receiver::receive_inner()
   {
     if (errno == EWOULDBLOCK || errno == EAGAIN)
     {
-      return "";
+      return ""; // Timed out, it's OK
     }
-    throw std::runtime_error("recv() failed");
+    throw std::runtime_error("recv() failed"); // This is not OK
   }
   else if (bytes_recvd == 0)
-    throw std::logic_error("Connection already terminated!");
+    throw std::logic_error("recv() called but connection already terminated.");
   return std::string(buffer, bytes_recvd);
 }
 
@@ -47,8 +47,8 @@ void Receiver::receive(Session &session)
     }
     catch (std::exception &ex)
     {
-      // TODO
-      throw std::logic_error("Not implemented.");
+      session.receiver_notify_failed(ex);
+      return;
     }
 
     if (!received_data.empty())
