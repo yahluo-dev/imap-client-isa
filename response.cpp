@@ -63,6 +63,9 @@ std::string responseTypeToString(ResponseType response_type)
       return std::string("RECENT");
     case ResponseType::FLAGS:
       return std::string("FLAGS");
+    default:
+      // NOTE This will (should) never happen but the compiler was complaining.
+      return std::string("FLAGS");
   }
 }
 

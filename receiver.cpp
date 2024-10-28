@@ -5,12 +5,21 @@
 #include "receiver.hpp"
 #include "response_parser.hpp"
 
-#define RECVMESSAGE_MAXLEN 4096
 
 std::string Receiver::received_data;
 volatile bool stopped;
+int Receiver::client_socket;
 
-std::string Receiver::receive_inner(int client_socket)
+Receiver::Receiver()
+{
+}
+
+Receiver::Receiver(Server &server)
+{
+  client_socket = server.get_socket();
+}
+
+std::string Receiver::receive_inner()
 {
   ssize_t bytes_recvd;
   char buffer[RECVMESSAGE_MAXLEN];
@@ -27,14 +36,14 @@ std::string Receiver::receive_inner(int client_socket)
   return std::string(buffer, bytes_recvd);
 }
 
-void Receiver::receive(Session &session, int client_socket)
+void Receiver::receive(Session &session)
 {
   stopped = false;
   while(true)
   {
     try
     {
-      received_data.append(receive_inner(client_socket));
+      received_data.append(receive_inner());
     }
     catch (std::exception &ex)
     {

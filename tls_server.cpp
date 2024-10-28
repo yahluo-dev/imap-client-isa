@@ -4,6 +4,10 @@
 #include <format>
 #include "tls_server.hpp"
 
+SSL *TLSServer::get_ssl()
+{
+  return ssl;
+}
 
 void TLSServer::create_ssl_context()
 {
@@ -33,22 +37,6 @@ void TLSServer::create_ssl_context()
   }
 
   SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, nullptr);
-}
-
-std::string TLSServer::receive_inner()
-{
-  ssize_t bytes_recvd;
-  char buffer[RECVMESSAGE_MAXLEN] = {};
-  if (-1 == (bytes_recvd = SSL_read(ssl, &buffer, RECVMESSAGE_MAXLEN)))
-  {
-    throw std::runtime_error("recv() failed");
-  }
-  if (bytes_recvd == 0)
-  {
-    ERR_print_errors_fp(stderr);
-    throw std::logic_error("Connection already terminated!");
-  }
-  return std::string(buffer, bytes_recvd);
 }
 
 void TLSServer::send(std::unique_ptr<Command> command)

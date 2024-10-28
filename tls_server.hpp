@@ -12,10 +12,10 @@ class TLSServer : public Server
   SSL_CTX *ctx;
   std::string cert_dir;
   std::string cert_file;
-  virtual std::string receive_inner();
   public:
   TLSServer(const std::string hostname, const std::string port, const std::string _cert_file, const std::string _cert_dir);
   ~TLSServer();
+  SSL *get_ssl();
   virtual void send(std::unique_ptr<Command> command);
 };
 

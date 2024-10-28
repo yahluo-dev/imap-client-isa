@@ -70,18 +70,18 @@ std::string Session::get_new_tag()
   return std::to_string(tag++);
 }
 
-Session::Session(std::unique_ptr<Server> _server)
-  : state(ImapState::GREETING), tag(1),  server(std::move(_server)), logger(std::cerr)
+Session::Session(std::unique_ptr<Server> _server, std::unique_ptr<Receiver> _receiver)
+  : state(ImapState::GREETING), tag(1),  server(std::move(_server)),
+    receiver(std::move(_receiver)), logger(std::cerr)
 {
-  int sock = server->get_socket();
-  receiving_thread = std::thread([this, sock]() {
-    Receiver::receive(static_cast<Session&>(*this), sock);
+  receiving_thread = std::thread([this]() {
+    this->receiver->receive(static_cast<Session&>(*this));
   });
 }
 
 Session::~Session()
 {
-  Receiver::stopped = true;
+  receiver->stopped = true;
   receiving_thread.join();
 }
 

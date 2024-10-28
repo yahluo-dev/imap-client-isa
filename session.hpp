@@ -11,6 +11,8 @@
 #include "server.hpp"
 #include "logger.hpp"
 
+class Receiver;
+
 enum class ImapState
 {
   GREETING,
@@ -30,6 +32,7 @@ class Session
   std::string username;
   std::string password;
   std::unique_ptr<Server> server;
+  std::unique_ptr<Receiver> receiver;
   std::string get_new_tag();
   void transition(ImapState state);
   Logger logger;
@@ -44,7 +47,7 @@ class Session
   std::thread receiving_thread;
 
   public:
-  Session(std::unique_ptr<Server> _server);
+  Session(std::unique_ptr<Server> _server, std::unique_ptr<Receiver> _receiver);
   ~Session();
   void login(const std::string username, const std::string password);
   void select(const std::string mailbox);

@@ -13,7 +13,6 @@ class Server
   protected:
   std::queue<std::unique_ptr<Response>> response_buffer;
   int client_socket;
-  static constexpr size_t RECVMESSAGE_MAXLEN = 4096;
   Logger logger;
   public:
   Server(const std::string hostname, const std::string port);

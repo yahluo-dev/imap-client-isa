@@ -5,16 +5,22 @@
 
 #include "session.hpp"
 
+#include "server.hpp"
+
 class Session;
 
 class Receiver
 {
-private:
+protected:
   static std::string received_data;
+  static constexpr size_t RECVMESSAGE_MAXLEN = 4096;
+  static int client_socket;
 public:
+  Receiver();
+  Receiver(Server &_server);
   static volatile bool stopped;
-  static std::string receive_inner(int client_socket);
-  static void receive(Session& session, int client_socket);
+  virtual std::string receive_inner();
+  void receive(Session& session);
 };
 
 #endif // RECEIVER_H_

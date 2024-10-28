@@ -10,6 +10,7 @@
 #include "tls_server.hpp"
 #include "session.hpp"
 #include "fnv.hpp"
+#include "tls_receiver.hpp"
 
 typedef struct {
   std::string username;
@@ -172,17 +173,20 @@ int main(int argc, char *argv[])
   }
 
   std::unique_ptr<Server> server;
+  std::unique_ptr<Receiver> receiver;
 
   if (use_tls)
   {
     server = std::make_unique<TLSServer>(server_hostname, port_number, cert_file, cert_dir);
+    receiver = std::make_unique<TLSReceiver>(dynamic_cast<TLSServer &>(*server));
   }
   else
   {
     server = std::make_unique<Server>(server_hostname, port_number);
+    receiver = std::make_unique<Receiver>(*server);
   }
 
-  std::unique_ptr<Session> session = std::make_unique<Session>(std::move(server));
+  std::unique_ptr<Session> session = std::make_unique<Session>(std::move(server), std::move(receiver));
   session->receive_greeting();
   session->login(creds.username, creds.password);
   session->select(mailbox_name);
