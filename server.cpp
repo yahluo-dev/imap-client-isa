@@ -11,6 +11,8 @@
 #include "response.hpp"
 #include "response_parser.hpp"
 
+#define TIMEOUT_S 1
+
 
 Server::Server(const std::string hostname, const std::string port)
   : logger(std::cerr)
@@ -47,65 +49,24 @@ Server::Server(const std::string hostname, const std::string port)
       continue;
     }
   }
+
+  // This ensures that the receiver eventually leaves
+  // uninterruptible sleep upon calling recv()
+  struct timeval tv;
+  tv.tv_sec = TIMEOUT_S;
+  tv.tv_usec = 0;
+  setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 }
 
+int Server::get_socket()
+{
+  return client_socket;
+}
 
 void Server::send(std::unique_ptr<Command> command)
 {
   std::string to_send = command->make_tcp();
   ::send(client_socket, to_send.c_str(), to_send.size(), 0);
-}
-
-std::string Server::receive_inner()
-{
-  ssize_t bytes_recvd;
-  char buffer[RECVMESSAGE_MAXLEN];
-  std::cout << "Server receive_inner called" << std::endl;
-  if (-1 == (bytes_recvd = recv(client_socket, &buffer, RECVMESSAGE_MAXLEN, 0)))
-  {
-    throw std::runtime_error("recv() failed");
-  }
-  if (bytes_recvd == 0)
-    throw std::logic_error("Connection already terminated!");
-  return std::string(buffer, bytes_recvd);
-}
-
-std::unique_ptr<Response> Server::receive()
-{
-  std::unique_ptr<Response> returned;
-  std::string responses_data;
-  std::vector<std::unique_ptr<Response>> parsed_responses;
-
-  if (!response_buffer.empty())
-  {
-    returned = std::move(response_buffer.front());
-    response_buffer.pop();
-    return returned; // If there's something in buffer, return it
-  }
-
-  std::string new_data;
-
-  new_data = receive_inner();
-  responses_data.append(new_data);
-
-  if (responses_data.size() == RECVMESSAGE_MAXLEN &&
-      responses_data.substr(responses_data.size()-2, responses_data.size()) != "\r\n")
-  {
-    // We didn't receive the entire thing
-    throw std::logic_error("Not implemented");
-  }
-
-  ResponseParser response_parser = ResponseParser(responses_data);
-  std::unique_ptr<Response> response;
-  while(response_parser.parse_next(response))
-  {
-    response_buffer.push(std::move(response));
-  }
-
-  returned = std::move(response_buffer.front());
-  response_buffer.pop();
-  return returned; // Return first of the newly parsed messages
-
 }
 
 Server::~Server()

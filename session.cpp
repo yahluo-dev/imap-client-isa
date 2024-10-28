@@ -9,6 +9,12 @@
 #include "session.hpp"
 #include "server.hpp"
 
+std::mutex Session::incoming_mutex;
+std::condition_variable Session::incoming_cv;
+std::queue<std::unique_ptr<Response>> Session::response_queue;
+
+volatile bool Receiver::stopped;
+
 std::ostream& operator<<(std::ostream& os, ImapState response_type)
 {
   switch(response_type)
@@ -32,6 +38,33 @@ std::ostream& operator<<(std::ostream& os, ImapState response_type)
   return os;
 }
 
+void Session::notify_incoming(std::unique_ptr<Response> response)
+{
+  std::lock_guard<std::mutex> lg(incoming_mutex);
+  ResponseType response_type = response->get_type();
+  switch(response_type)
+  {
+    case ResponseType::BYE:
+      // Got a BYE from the server. Handle disconnecting.
+      break;
+    default:
+      response_queue.push(std::move(response));
+      break;
+  }
+  incoming_cv.notify_one();
+}
+
+std::unique_ptr<Response> Session::wait_for_response()
+{
+  std::unique_lock ul(incoming_mutex);
+
+  incoming_cv.wait(ul, [] { return !response_queue.empty(); });
+
+  std::unique_ptr<Response> response = std::move(response_queue.front());
+  response_queue.pop();
+  return response;
+}
+
 std::string Session::get_new_tag()
 {
   return std::to_string(tag++);
@@ -39,7 +72,18 @@ std::string Session::get_new_tag()
 
 Session::Session(std::unique_ptr<Server> _server)
   : state(ImapState::GREETING), tag(1),  server(std::move(_server)), logger(std::cerr)
-{}
+{
+  int sock = server->get_socket();
+  receiving_thread = std::thread([this, sock]() {
+    Receiver::receive(static_cast<Session&>(*this), sock);
+  });
+}
+
+Session::~Session()
+{
+  Receiver::stopped = true;
+  receiving_thread.join();
+}
 
 void Session::transition(ImapState _state)
 {
@@ -68,7 +112,7 @@ void Session::login(const std::string username, const std::string password)
 
   server->send(std::move(login_command));
 
-  std::unique_ptr<Response> second_response = server->receive();
+  std::unique_ptr<Response> second_response = wait_for_response();
 
   if (second_response->get_type() == ResponseType::OK)
   {
@@ -98,7 +142,7 @@ void Session::unexpected_response(std::unique_ptr<Response> &response)
 
 void Session::receive_greeting()
 {
-  std::unique_ptr<Response> greeting = server->receive();
+  std::unique_ptr<Response> greeting = wait_for_response();
 
   switch(greeting->get_type())
   {
@@ -135,7 +179,7 @@ void Session::select(const std::string mailbox)
   std::unique_ptr<Response> response;
   do // Skip through untagged responses
   {
-    response = server->receive(); // FIXME IMPORTANT: Account for unsolicited data. Do we need concurrence because of that though? Unsolicited data is *always untagged*
+    response = wait_for_response(); // FIXME IMPORTANT: Account for unsolicited data. Do we need concurrence because of that though? Unsolicited data is *always untagged*
   } while (response->get_tag() == "");
 
   // The last one must be the one indicating OK status
@@ -173,7 +217,7 @@ std::vector<uint32_t> Session::search(bool only_unseen)
   std::unique_ptr<Response> response;
   do // Skip through untagged responses
   {
-    response = server->receive(); // FIXME IMPORTANT: Account for unsolicited data. Do we need concurrence because of that though? Unsolicited data is *always untagged*
+    response = wait_for_response(); // FIXME IMPORTANT: Account for unsolicited data. Do we need concurrence because of that though? Unsolicited data is *always untagged*
     if (response->get_type() == ResponseType::SEARCH)
     {
       search_results_response = std::unique_ptr<SearchResponse>(dynamic_cast<SearchResponse *>(response.release()));
@@ -217,7 +261,7 @@ std::vector<std::string> Session::fetch(std::vector<uint32_t> sequence_set, bool
 
   do
   {
-    response = server->receive();
+    response = wait_for_response();
     if (response->get_type() == ResponseType::FETCH)
     {
       fetch_results_responses.push_back(std::unique_ptr<FetchResponse>(dynamic_cast<FetchResponse *>(response.release())));
