@@ -56,9 +56,16 @@ void Receiver::receive(Session &session)
       ResponseParser response_parser = ResponseParser(received_data);
 
       std::unique_ptr<Response> response;
-      while(response_parser.parse_next(response))
+      try
       {
-        session.notify_incoming(std::move(response));
+        while(response_parser.parse_next(response))
+        {
+          session.notify_incoming(std::move(response));
+        }
+      }
+      catch(std::exception &ex)
+      {
+        session.receiver_notify_failed(ex);
       }
 
       received_data = "";

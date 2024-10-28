@@ -4,6 +4,7 @@
 #include <netdb.h>
 #include <stdexcept>
 #include <stdio.h>
+#include <cstring>
 #include <iostream>
 #include <memory>
 
@@ -27,25 +28,19 @@ Server::Server(const std::string hostname, const std::string port)
 
   if (0 != (rv = getaddrinfo(hostname.c_str(), port.c_str(), &hints, &server_addrinfo)))
   {
-    std::cerr << "getaddrinfo: " << gai_strerror(rv);
-    fflush(stderr);
-    throw std::runtime_error("Connection failure");
+    throw std::runtime_error(gai_strerror(rv));
   }
 
   for(p = server_addrinfo; p != NULL; p = p->ai_next) {
     if ((client_socket = socket(p->ai_family, p->ai_socktype,
                                 p->ai_protocol)) == -1) {
-      perror("client: socket");
-      fflush(stderr);
-      throw std::runtime_error("Connection failure");
+      throw std::runtime_error(strerror(errno));
       continue;
     }
 
     if (connect(client_socket, p->ai_addr, p->ai_addrlen) == -1) {
       close(client_socket);
-      perror("client: connect");
-      fflush(stderr);
-      throw std::runtime_error("Connection failure");
+      throw std::runtime_error(strerror(errno));
       continue;
     }
   }

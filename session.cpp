@@ -34,6 +34,9 @@ std::ostream& operator<<(std::ostream& os, ImapState response_type)
     case ImapState::LOGOUT:
       os << std::string("LOGOUT");
       break;
+    case ImapState::ERROR:
+      os << std::string("ERROR");
+      break;
   }
   return os;
 }

@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
         long arg_port = strtol(optarg, nullptr, 10);
         if (arg_port > 65535 || arg_port < 1)
         {
-          std::cerr << "-s: PORT must be in range <1, 65535>!" << std::endl;
+          logger.error_log("-s: PORT must be in range <1, 65535>!");
           exit(1);
         }
         port_number = optarg;
@@ -85,16 +85,10 @@ int main(int argc, char *argv[])
         cert_file = optarg;
         break;
       }
-//      case 'h':
-//      {
-//        std::cerr << USAGE << std::endl;
-//        return 0;
-//        break;
-//      }
       default:
       {
-        std::cerr << "Invalid Usage or not implemented." << std::endl;
-        std::cerr << USAGE << std::endl;
+        logger.error_log("Invalid usage.");
+        std::cout << USAGE << std::endl;
         return 1;
         break;
       }
@@ -103,47 +97,56 @@ int main(int argc, char *argv[])
 
   if (output_dir.empty())
   {
-    std::cerr << "Output directory must be specified." << std::endl;
+    logger.error_log("Output directory must be specified.");
     return 1;
   }
 
   if (optind == argc)
   {
-    std::cerr << "Hostname must be supplied." << std::endl;
+    logger.error_log("Hostname must be supplied.");
     return 1;
   }
 
   server_hostname = std::string(argv[optind]);
   if (optind != argc-1)
   {
-    std::cout << "Invalid usage: Too many arguments" << std::endl;
+    logger.error_log("Invalid usage: Too many arguments");
+    return 1;
   }
 
   Credentials creds = Credentials(auth_file);
 
   if (auth_file.empty())
   {
-    std::cout << "Credentials file must be specified." << std::endl;
+    logger.error_log("Credentials file must be specified.");
   }
 
   std::unique_ptr<Server> server;
   std::unique_ptr<Receiver> receiver;
 
-  if (use_tls)
+  try
   {
-    server = std::make_unique<TLSServer>(server_hostname, port_number, cert_file, cert_dir);
-    receiver = std::make_unique<TLSReceiver>(dynamic_cast<TLSServer &>(*server));
+    if (use_tls)
+    {
+      server = std::make_unique<TLSServer>(server_hostname, port_number, cert_file, cert_dir);
+      receiver = std::make_unique<TLSReceiver>(dynamic_cast<TLSServer &>(*server));
+    }
+    else
+    {
+      server = std::make_unique<Server>(server_hostname, port_number);
+      receiver = std::make_unique<Receiver>(*server);
+    }
   }
-  else
+  catch (std::exception &ex)
   {
-    server = std::make_unique<Server>(server_hostname, port_number);
-    receiver = std::make_unique<Receiver>(*server);
+    logger.error_log(ex.what());
+    return 1;
   }
 
   std::unique_ptr<Session> session = std::make_unique<Session>(std::move(server), std::move(receiver));
 
- std::vector<uint32_t> seq_set;
- std::vector<std::string> messages;
+  std::vector<uint32_t> seq_set;
+  std::vector<std::string> messages;
   try
   {
     session->receive_greeting();
@@ -168,7 +171,7 @@ int main(int argc, char *argv[])
     std::ofstream save_to(path);
     if (!save_to)
     {
-      std::cerr << std::format("Could not open \"{}\" for writing.", path);
+      logger.error_log(std::format("Could not open \"{}\" for writing.", path));
       return 1;
     }
 
