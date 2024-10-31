@@ -1,6 +1,5 @@
 #include <cctype>
 #include <iostream>
-#include <format>
 #include <regex>
 #include <stdio.h>
 #include <assert.h>

@@ -1,5 +1,4 @@
 #include <stdexcept>
-#include <format>
 #include <sstream>
 
 #include "command.hpp"

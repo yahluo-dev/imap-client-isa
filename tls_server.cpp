@@ -1,7 +1,6 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <iostream>
-#include <format>
 #include "tls_server.hpp"
 
 SSL *TLSServer::get_ssl()
