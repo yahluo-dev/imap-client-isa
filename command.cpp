@@ -36,7 +36,6 @@ std::string LoginCommand::make_tcp()
 {
   std::stringstream ss;
   ss << tag << " " << "LOGIN" << " " << user_name << " " << password << "\r\n";
-  std::string command_string = std::format("{} LOGIN {} {}\r\n", tag, user_name, password);
 
   return ss.str();
 }
