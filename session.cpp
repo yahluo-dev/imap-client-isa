@@ -2,7 +2,6 @@
 #include <sstream>
 #include <memory>
 #include <stdexcept>
-#include <format>
 
 #include "command.hpp"
 #include "response.hpp"
@@ -74,7 +73,7 @@ std::unique_ptr<Response> Session::wait_for_response()
   }
   if (state == ImapState::ERROR)
   {
-    throw std::runtime_error(std::format("Connection error: {}", receiver_ex.what()));
+    throw std::runtime_error(std::string("Connection error: ") + receiver_ex.what());
   }
 
   std::unique_ptr<Response> response = std::move(response_queue.front());
@@ -139,13 +138,13 @@ void Session::login(Credentials &creds)
     }
     else
     {
-      logger.debug_log(std::format("[OK] Server: {}", second_response->get_text()));
+      logger.debug_log("[OK] Server: " + second_response->get_text());
       transition(ImapState::AUTHD);
     }
   }
   else
   {
-      logger.error_log(std::format("[{}] Server: {}", responseTypeToString(second_response->get_type()), second_response->get_text()));
+      logger.error_log("[" + responseTypeToString(second_response->get_type()) + "] Server: " + second_response->get_text());
       throw std::runtime_error("LOGIN failed.");
   }
 }
@@ -206,7 +205,7 @@ void Session::select(const std::string mailbox)
   }
   else
   {
-    logger.error_log(std::format("[{}] Server: {}", responseTypeToString(response->get_type()), response->get_text()));
+    logger.error_log("[" + responseTypeToString(response->get_type()) + "] Server: " + response->get_text());
     throw std::runtime_error("SELECT failed.");
   }
 }
@@ -250,7 +249,7 @@ std::vector<uint32_t> Session::search(bool only_unseen)
   }
   else
   {
-    logger.error_log(std::format("[{}] Server: {}", responseTypeToString(response->get_type()), response->get_text()));
+    logger.error_log("[" + responseTypeToString(response->get_type()) + "] Server: " + response->get_text());
     throw std::runtime_error("SEARCH failed");
   }
 }
@@ -298,7 +297,7 @@ std::vector<std::string> Session::fetch(std::vector<uint32_t> sequence_set, bool
   }
   else
   {
-    logger.error_log(std::format("[{}] Server: {}", responseTypeToString(response->get_type()), response->get_text()));
+    logger.error_log("[" + responseTypeToString(response->get_type()) + "] Server: " + response->get_text());
     throw std::runtime_error("FETCH failed");
   }
 }

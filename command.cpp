@@ -1,5 +1,6 @@
 #include <stdexcept>
 #include <format>
+#include <sstream>
 
 #include "command.hpp"
 
@@ -34,36 +35,41 @@ FetchCommand::FetchCommand(std::string _tag, std::vector<uint32_t> _sequence_set
 
 std::string LoginCommand::make_tcp()
 {
+  std::stringstream ss;
+  ss << tag << " " << "LOGIN" << " " << user_name << " " << password << "\r\n";
   std::string command_string = std::format("{} LOGIN {} {}\r\n", tag, user_name, password);
 
-  return command_string;
+  return ss.str();
 }
 
 std::string SelectCommand::make_tcp()
 {
-  std::string command_string = std::format("{} SELECT {}\r\n", tag, mailbox_name);
+  std::stringstream ss;
+  ss << tag << " SELECT " << mailbox_name << "\r\n";
 
-  return command_string;
+  return ss.str();
 }
 
 std::string SearchCommand::make_tcp()
 {
-  std::string command_string = std::format("{} SEARCH {}\r\n", tag, search_criteria);
+  std::stringstream ss;
+  ss << tag << " SEARCH " << search_criteria << "\r\n";
 
-  return command_string;
+  return ss.str();
 }
 
 std::string FetchCommand::make_tcp()
 {
-  std::string command_string = std::format("{} FETCH", tag);
-  command_string += std::format(" {}", sequence_set[0]);
+  std::stringstream ss;
+  ss << tag << " FETCH";
+  if (sequence_set.empty())
+    throw std::logic_error("Sequence set empty!");
+  ss << " " << sequence_set[0];
   for (auto it = sequence_set.begin() + 1; it != sequence_set.end(); ++it)
   {
-    command_string += std::format(",{}", *it);
+    ss << "," << *it;
   }
-  command_string += " ";
-  command_string += data_item;
-  command_string += "\r\n";
+  ss << " " << data_item << "\r\n";
 
-  return command_string;
+  return ss.str();
 }

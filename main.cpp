@@ -4,7 +4,6 @@
 #include <regex>
 #include <stdexcept>
 #include <fstream>
-#include <format>
 #include "main.hpp"
 #include "server.hpp"
 #include "tls_server.hpp"
@@ -161,17 +160,17 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  std::cout << std::format("Fetched {} {}.", messages.size(),
-                only_unseen ? "unseen messages" : "messages") << std::endl;
+  std::cout << "Fetched " << messages.size() <<
+                (only_unseen ? "unseen messages" : "messages") << "." << std::endl;
 
   FNV fnv;
   for (const auto& message : messages)
   {
-    std::string path = std::format("{}/{}.eml", output_dir, fnv.hash(message));
+    std::string path = output_dir + "/" + fnv.hash(message) + ".eml";
     std::ofstream save_to(path);
     if (!save_to)
     {
-      logger.error_log(std::format("Could not open \"{}\" for writing.", path));
+      logger.error_log("Could not open " + path + " for writing.");
       return 1;
     }
 

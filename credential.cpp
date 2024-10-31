@@ -1,6 +1,5 @@
 #include <fstream>
 #include "credential.hpp"
-#include <format>
 
 std::regex cred_file_username_regex("username=([a-zA-Z0-9@.-]{1,256})", std::regex_constants::ECMAScript);
 std::regex cred_file_password_regex("password=([a-zA-Z0-9]{1,20})", std::regex_constants::ECMAScript);
@@ -23,7 +22,7 @@ Credentials::Credentials(std::string _cred_file)
 
   if (!fs)
   {
-    throw std::runtime_error(std::format("Could not open credential file {}", _cred_file));
+    throw std::runtime_error("Could not open credential file " + _cred_file);
   }
   std::getline(fs, line);
   if (std::regex_search(line, match, cred_file_username_regex))
@@ -32,7 +31,7 @@ Credentials::Credentials(std::string _cred_file)
   }
   else
   {
-    throw std::runtime_error(std::format("Credential file invalid: {}", _cred_file));
+    throw std::runtime_error("Credential file invalid: " + _cred_file);
   }
 
   std::getline(fs, line);
@@ -42,7 +41,7 @@ Credentials::Credentials(std::string _cred_file)
   }
   else
   {
-    throw std::runtime_error(std::format("Credential file invalid: {}", _cred_file));
+    throw std::runtime_error("Credential file invalid: " +  _cred_file);
   }
   fs.close();
 }

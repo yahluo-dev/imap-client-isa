@@ -839,7 +839,7 @@ bool ResponseParser::parse_next(std::unique_ptr<Response> &parsed_response)
   else
   {
     logger.error_log("Parsing failed.");
-    throw std::runtime_error(std::format("Didn't understand the server's response! Response data: {}", data.substr(start_pos, data.size())));
+    throw std::runtime_error("Didn't understand the server's response! Response data: " + data.substr(start_pos, data.size()));
   }
   assert(pos_stack.empty());
   assert(parsed_response != nullptr);

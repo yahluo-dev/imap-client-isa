@@ -22,8 +22,8 @@ void TLSServer::create_ssl_context()
   }
 
 
-  logger.debug_log(std::format("Using certificate {}", cert_file));
-  logger.debug_log(std::format("Using certificate directory {}", cert_dir));
+  logger.debug_log("Using certificate " + cert_file);
+  logger.debug_log("Using certificate directory " + cert_dir);
 
   const char *cert_file_c_string = cert_file.empty() ? nullptr : cert_file.c_str();
   const char *cert_dir_c_string = cert_dir.empty() ? nullptr : cert_dir.c_str();
