@@ -1,6 +1,12 @@
 \documentclass[a4]{report}
 \usepackage{graphicx}
-\usepackage{xcolor}
+\usepackage{svg}
+\usepackage[table]{xcolor}
+\usepackage{caption}
+\usepackage{mdframed}
+\usepackage{subcaption}
+\usepackage[a4paper, top=1.5cm, bottom=1.5cm]{geometry}
+\usepackage{adjustbox}
 \usepackage[
 backend=biber,
 style=alphabetic,
@@ -30,17 +36,50 @@ sorting=ynt
 
 \section{SSL/TLS}
 
+TLS (Transport Layer security) allows client/server applications to communicate over the Internet in a way protected against eavesdropping, tampering, and message forgery\cite{rfc8446}.
+
+TLS was introduced as a replacement for the SSL 2.0 protocol, which featured serious vulnerabilities, leading to it being abandoned\cite{rfc6176}.
+
+\subsection{Asymmetric cryptography}
+
+\textbf{Asymmetric cryptography} refers to cryptographic methods and algorithms that do not ask that the two counterparts share the same key, and it is instead decided upon during the key exchange process (e.g. Diffie-Hellman Key Exchange). TLS/SSL can be configured for use both with the key exchange algorithm, or with a pre-shared key (TLS-PSK).
+
+\subsection{Connection initiation}
+
+TLS works over TCP, hence first a TCP handshake is performed, and then a TLS handshake. During the TLS handshake, the counterparts negotiate the connection according to their supported protocol versions and cipher suites, exchange and verify each other's certificates against the \textit{authorities} whom the verifying side trusts.
+
+\begin{enumerate}
+  \item Client sends a \texttt{Client Hello} message to the server, in particular highest \textit{TLS Version} supported, a list of supported \textit{cipher suites}, a \textit{random number} for key generation, followed by standardized extensions and other fields.
+  \item Server sends a \texttt{Server Hello} message to the client, including, among other information, selected \textit{TLS Version}, and the server's \textit{random number}.
+  \item The server sends its certificate to the client, and the client may send its certificate to the server upon request.
+\end{enumerate}
+
+The server may also request additional information from the client instead of sending a \texttt{Server Hello} (a \texttt{Hello Retry Request})\cite{rfc8446}.
+
+\subsection{Connection termination}
+
+The connection is terminated
+
+\subsection{Certificates and CAs}
+
+A \textbf{certificate} is an authorization token that is signed by a \textit{Certification Authority} (CA), typically using an algorithm like RSA, DSA, or, more recently, ECDSA.
+
+The signature algorithm based on \textbf{RSA} functions as follows (Alice wants to send a signed message to Bob; $d$, $e$ are Alice's private and public keys respectively., $n=pq$ is the modulo; Bob has Alice's public key $e$):
+
+\begin{enumerate}
+  \item Alice computes $s=hash(m)^{d}\pmod{n}$ and sends it along with $m$.
+  \item Bob computes $k=s^{e} \pmod{n}$ and compares if $k = hash(m)$. If it is so, then Bob can be sure that it was indeed Alice who sent the message, because $(h^{e})^{d}=(h^{d})^{e} \pmod{n}$.
+\end{enumerate}
+
+A \textbf{Certification Authority} (CA) is a party which is trusted by a group of systems. That is, certificates signed by a CA are viewed by these systems as having the weight of a proof of the counterpart's identity when communicating.
+
 \chapter{Design}
 
-% About concurrency, parsing, cli...
-
-\TODO
-
-IMAP is a comparatively complex protocol, much more so than the simpler alternative of POP3, and its context-free grammar asks for a more advanced parsing method than mere regular expression matching. Recursive descent parsers, on the other hand, are widely used for analyzing context-free languages, including network protocols. The parser implementation thus turned out straightforward, albeit requiring slightly more care and debugging.
+IMAP is a comparatively complex protocol, and its context-free grammar asks for a more advanced parsing method than mere regular expression matching. Recursive descent parsers, on the other hand, are widely used for analyzing context-free languages, including network protocols. The parser implementation thus turned out straightforward, albeit requiring some care and debugging.
 
 \chapter{Implementation}
 
-The program is implemented in C++.
+The program is implemented in \textit{C++20}. In view of limited support for C++20 on the reference machine with \textit{GCC 11.5.0}, not all features of the standard could be used in the project, including missing support for \texttt{std::format}. Nevertheless, the limitations proved to be insignificant to the project as a whole and caused minimal problems.
 
 \section{Dependencies}
 
@@ -48,7 +87,7 @@ The program is implemented in C++.
 \item \texttt{make}
 \item \texttt{gcc}
 \item \texttt{OpenSSL}
-\item \texttt{googletest} (when building unit tests)
+\item \texttt{googletest} \textit{(when building unit tests)}
 \end{itemize}
 
 
@@ -56,6 +95,8 @@ The program is implemented in C++.
 
 \begin{itemize}
 \item \texttt{Makefile} - Makefile managing the build process
+\item \texttt{receiver.hpp, receiver.cpp} - Class implementing asynchronous receipt of messages
+\item \texttt{tls\_receiver.hpp, tls\_receiver.cpp} - A subclass of \texttt{Receiver} supporting TLS
 \item \texttt{command.hpp, command.cpp} - Command class representing commands sent by the user
 \item \texttt{fnv.hpp, fnv.cpp} - Fowler-Noll-Vo\cite{eastlake-fnv-29} hashing function class for creating unique filenames
 \item \texttt{logger.hpp, logger.cpp} - Class implementing logging capabilities with adjustable logging level
@@ -64,7 +105,7 @@ The program is implemented in C++.
 \item \texttt{parser\_logger.hpp, parser\_logger.cpp} - Logger subclass for the recursive descent parser
 \item \texttt{response.hpp, response.cpp} - Response class representing messages sent by the server
 \item \texttt{response\_parser.hpp, response\_parser.cpp} - Class for parsing server response data
-\item \texttt{server.hpp, server.cpp} - Class implementing low-level connection management
+\item \texttt{server.hpp, server.cpp} - Class initializing the socket and managing message sending
 \item \texttt{tls\_server.hpp, tls\_server.cpp} - Server subclass adding SSL/TLS initialization and management
 \item \texttt{session.hpp, session.cpp} - Class managing user actions on a high level
 \item \texttt{client.hpp, client.cpp} - \TODO
@@ -75,13 +116,13 @@ The program is implemented in C++.
 
 \subsection{Response parser}
 
-A handwritten backtracking recursive-descent parser is used to parse server responses according to the formal syntax specification in [RFC3501]. The parser structure closely follows the formal specification of the language.
+A handwritten backtracking recursive-descent parser is used to parse server responses according to the formal syntax specification in \cite{rfc3501}. The parser structure closely follows the formal specification of the language.
 
-Even though backtracking is known to make the parser less effecient due to possible rescanning, and hence memoization is sometimes used, it was not implemented in the parser because the implemented grammar is comparatively simple, so the amount of backtracking that can happen is limited.
+Even though backtracking is known to bear risk of bringing exponential time complexity to the parser, the implemented grammar is comparatively simple, and the messages short, so the amount of backtracking that can happen is limited.
 
 \subsection{Session}
 
-The \texttt{Session} class represents a connection to the IMAP server. It features a finite-state machine for keeping track of the communication state and methods for individual actions like \texttt{fetch}, \texttt{select}, \texttt{search} and \texttt{login}.
+The \texttt{Session} class represents a connection to the IMAP server. It features a \textit{finite-state machine} for keeping track of the communication state and \textit{methods} for individual actions like \texttt{fetch}, \texttt{select}, \texttt{search} and \texttt{login}.
 
 \subsection{Command}
 
@@ -103,19 +144,28 @@ The \texttt{Server} class has a buffer for incoming responses, and constructor w
 
 \section{Limitations}
 
-\TODO % Justification
+\begin{itemize}
+  \item File names do not contain any information about the messages
+  \item No support for message continuation requests
+\end{itemize}
 
 \chapter{Usage}
 
 \section{CLI Arguments}
 
-\texttt{\$ imapcl SERVER [-p port] [-T [-c certfile] [-C certaddr]] [-n] [-h] -a auth\_file [-b MAILBOX] -o out\_dir}
+\begin{mdframed}
+\begin{verbatim}
+$ imapcl SERVER [-p port] [-T [-c certfile] [-C certaddr]] [-n] [-h]
+-a auth_file [-b MAILBOX] -o out_dir
+\end{verbatim}
+\end{mdframed}
 
 \begin{table}[h]
   \renewcommand*{\arraystretch}{1.0}
   \centering
   \begin{tabular}{|l|l|}
     \hline
+    \rowcolor{lightgray}
     Option & Description\\
     \hline
     \texttt{-p PORT}      & Port to connect to. Default is 993 for IMAPS and 143 for plain IMAP.\\
@@ -129,9 +179,45 @@ The \texttt{Server} class has a buffer for incoming responses, and constructor w
     \texttt{-o OUT\_DIR}  & Directory to store downloaded messages\\
     \hline
   \end{tabular}
+  \caption{Command line options description}
 \end{table}
 
 \section{Examples}
+
+\begin{figure}[h!]
+\begin{subfigure}{\textwidth}
+\begin{mdframed}[backgroundcolor=lightgray]
+\begin{verbatim}
+# ./imapcl 127.0.0.1 -p 143 -a credentials -b Important -h -o outdir/
+Fetched 5 messages (headers).
+\end{verbatim}
+\end{mdframed}
+\caption{Fetching message headers}
+\end{subfigure}
+\vspace{0.5cm}
+
+\begin{subfigure}{\textwidth}
+\begin{mdframed}[backgroundcolor=lightgray]
+\begin{verbatim}
+# ./imapcl 127.0.0.1 -p 143 -a credentials -b Important -o outdir/
+Fetched 5 messages.
+\end{verbatim}
+\end{mdframed}
+\caption{Fetching entire messages}
+\end{subfigure}
+\vspace{0.5cm}
+
+\begin{subfigure}{\textwidth}
+\begin{mdframed}[backgroundcolor=lightgray]
+\begin{verbatim}
+# ./imapcl 127.0.0.1 -p 143 -a credentials -b Important -n -o outdir/
+Fetched 1 unseen messages.
+\end{verbatim}
+\end{mdframed}
+\caption{Fetching only unseen messages}
+\end{subfigure}
+\caption{Usage examples}
+\end{figure}
 
 \chapter{Testing}
 
@@ -151,19 +237,26 @@ The \texttt{Server} class has a buffer for incoming responses, and constructor w
 
 \section{Diagrams}
 
-\begin{figure}
+\begin{figure}[t]
   \centering
-  \includegraphics*[width=\textwidth]{imapcl-class.png}[h]
+  \rotatebox{90}{\includegraphics*[width=1.5\textwidth]{imapcl-class.png}}
+  %%\rotatebox{90}{\includesvg[width=1.5\textwidth]{imapcl-class.svg}[h]} %% Inkscape doesn't read the file properly for some reason when called by latexmk
   \caption{Class diagram}
   \label{class}
 \end{figure}
 
 \begin{figure}
   \centering
-  \includegraphics*[width=0.5\textwidth]{imapcl-state.png}[h]
+  \includegraphics*[width=0.7\textwidth]{imapcl-state.png}
   \caption{State diagram}
   \label{state}
 \end{figure}
+
+\chapter{Further development}
+
+\begin{itemize}
+  \item Possibly add support for using a gpg encrypted credential file, thus not forcing the user to have the credentials in plain text.
+\end{itemize}
 
 \printbibliography
 

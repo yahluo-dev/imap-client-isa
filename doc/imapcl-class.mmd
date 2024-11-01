@@ -40,7 +40,7 @@ classDiagram
   class LoginCommand {
     -string user_name
     -string password
-    +LoginCommand(tag: string, username: string, password: string)
+    +LoginCommand(tag: string, \nusername: string, password: string)
   }
 
   %% AUTHD
@@ -53,13 +53,13 @@ classDiagram
   %% SELECTED
 
   class SearchCommand {
-   +SearchCommand(tag: string, search_criteria: string)
+   +SearchCommand(tag: string, \nsearch_criteria: string)
   }
 
   class FetchCommand {
     -vector<int> sequence_set
     -FetchType type
-    +FetchCommand(tag: string, seq_set: string, data_item: string)
+    +FetchCommand(tag: string, \nseq_set: string, data_item: string)
   }
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -75,21 +75,17 @@ classDiagram
     +string text
   }
 
-%%  class ListResponse {
-%%    TODO
-%%  }
-
   class SearchResponse {
      messages
   }
 
-%%  class FlagsResponse {
-%%    TODO
-%%  }
+  class FlagsResponse {
+   string flag_string
+  }
 
-%%  class ExistsResponse {
-%%    no fields
-%%  }
+  class SingleNumberResponse {
+   -int number
+  }
 
   class FetchResponse {
     +Tag tag
@@ -97,11 +93,28 @@ classDiagram
   }
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %% RECEIVER
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  class Receiver {
+   - string received_data
+   - int client_socket
+   - receive_inner()
+   + Receiver(Server &server)
+   + receive(Session &server)
+  }
+
+  class TLSReceiver {
+   - SSL ssl
+   - receive_inner()
+   + TLSReceiver(TLSServer &server)
+  }
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %% SESSION
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   class Session {
-    -imap_state_t state
+    -ImapState state
     -string username
     -string password
   }
@@ -123,7 +136,7 @@ classDiagram
   note for Server "Implements low-level connection and TLS-related logic"
 
   class TLSServer {
-    +TLSServer(hostname: string, port: int, cert_files:string, cert_dir:string)
+    +TLSServer(hostname: string, port: int, \ncert_files:string, cert_dir:string)
   }
 
   Server <|-- TLSServer
@@ -140,12 +153,15 @@ classDiagram
   Command <|-- SearchCommand
   Command <|-- FetchCommand
 
-  <<Abstract>> Response
   Server -- ResponseParser : << uses >>
   ResponseParser -- Response : << instantiates >>
   Response <|-- StatusResponse
   Response <|-- SearchResponse
-%%  Response <|-- ListResponse
-%%  Response <|-- FlagsResponse
-%%  Response <|-- ExistsResponse
+  Response <|-- FlagsResponse
+  Response <|-- SingleNumberResponse
   Response <|-- FetchResponse
+
+  Receiver <|-- TLSReceiver
+
+  Session -- Receiver : << notifies >>
+
