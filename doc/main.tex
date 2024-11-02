@@ -1,5 +1,6 @@
 \documentclass[a4]{report}
 \usepackage{graphicx}
+\usepackage{listings} % TODO
 \usepackage{svg}
 \usepackage[table]{xcolor}
 \usepackage{caption}
@@ -221,6 +222,8 @@ Fetched 1 unseen messages.
 
 \chapter{Testing}
 
+\textbf{Example of running the tests} can be found in the appendix.
+
 \section{Unit tests}
 
 \begin{itemize}
@@ -229,11 +232,63 @@ Fetched 1 unseen messages.
 \item \texttt{test/test\_main.cpp} - Initialization of the Google Test framework
 \end{itemize}
 
-\section{Testing results}
-
-\TODO
 
 \chapter{Appendix}
+
+\section{Testing results}
+
+\begin{figure}
+\begin{verbatim}
+# make test
+g++ -std=c++20 -g -Wall -Wenum-compare -Wenum-conversion -Wpedantic -ggdb -O0 -g -c
+command.cpp -o command.o
+g++ -std=c++20 -g -Wall -Wenum-compare -Wenum-conversion -Wpedantic -ggdb -O0 -g -c
+test/parse_response.cpp -o test/parse_response.o
+g++ -std=c++20 -g -Wall -Wenum-compare -Wenum-conversion -Wpedantic -ggdb -O0 -g -c
+response_parser.cpp -o response_parser.o
+g++ -std=c++20 -g -Wall -Wenum-compare -Wenum-conversion -Wpedantic -ggdb -O0 -g -c
+parser_logger.cpp -o parser_logger.o
+g++ -std=c++20 -g -Wall -Wenum-compare -Wenum-conversion -Wpedantic -ggdb -O0 -g -lgtest
+test/test_main.o test/make_tcp.o command.o test/parse_response.o response_parser.o response.o
+logger.o parser_logger.o -o imapcl-tests
+# ./imapcl-tests
+[==========] Running 11 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 4 tests from CommandMakeTcpTests
+[ RUN      ] CommandMakeTcpTests.Login
+[       OK ] CommandMakeTcpTests.Login (0 ms)
+[ RUN      ] CommandMakeTcpTests.Select
+[       OK ] CommandMakeTcpTests.Select (0 ms)
+[ RUN      ] CommandMakeTcpTests.Search
+[       OK ] CommandMakeTcpTests.Search (0 ms)
+[ RUN      ] CommandMakeTcpTests.Fetch
+[       OK ] CommandMakeTcpTests.Fetch (0 ms)
+[----------] 4 tests from CommandMakeTcpTests (0 ms total)
+
+[----------] 7 tests from ResponseParserParseTests
+[ RUN      ] ResponseParserParseTests.LoginNoError
+[       OK ] ResponseParserParseTests.LoginNoError (0 ms)
+[ RUN      ] ResponseParserParseTests.GreetingParseCorrect
+[       OK ] ResponseParserParseTests.GreetingParseCorrect (0 ms)
+[ RUN      ] ResponseParserParseTests.LoginParseCorrect
+[       OK ] ResponseParserParseTests.LoginParseCorrect (0 ms)
+[ RUN      ] ResponseParserParseTests.LoginParseCorrect2
+[       OK ] ResponseParserParseTests.LoginParseCorrect2 (0 ms)
+[ RUN      ] ResponseParserParseTests.SelectResponseParseCorrect
+[       OK ] ResponseParserParseTests.SelectResponseParseCorrect (0 ms)
+[ RUN      ] ResponseParserParseTests.SelectResponseParseCorrect2
+[       OK ] ResponseParserParseTests.SelectResponseParseCorrect2 (0 ms)
+[ RUN      ] ResponseParserParseTests.SearchResponseParseCorrect
+[       OK ] ResponseParserParseTests.SearchResponseParseCorrect (0 ms)
+[----------] 7 tests from ResponseParserParseTests (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 11 tests from 2 test suites ran. (0 ms total)
+[  PASSED  ] 11 tests.
+#
+\end{verbatim}
+\caption{Running the tests}
+\end{figure}
 
 \section{Diagrams}
 
