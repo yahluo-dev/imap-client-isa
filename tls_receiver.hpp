@@ -7,11 +7,11 @@
 
 class TLSReceiver : public Receiver
 {
-private:
+protected:
   static SSL *ssl;
+  virtual std::string receive_inner();
 public:
   TLSReceiver(TLSServer &tls_server);
-  virtual std::string receive_inner();
 };
 
 #endif // TLS_RECEIVER_H_
