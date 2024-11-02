@@ -94,11 +94,25 @@ Session::Session(std::unique_ptr<Server> _server, std::unique_ptr<Receiver> _rec
     this->receiver->receive(static_cast<Session&>(*this));
   });
 }
+ImapState Session::get_state()
+{
+  return state;
+}
 
 Session::~Session()
 {
   receiver->stopped = true;
   receiving_thread.join();
+}
+
+void Session::read_new()
+{
+  throw std::logic_error("Not implemented.");
+}
+
+void Session::bye()
+{
+  throw std::logic_error("Not implemented.");
 }
 
 void Session::transition(ImapState _state)
