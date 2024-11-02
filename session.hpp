@@ -48,15 +48,18 @@ class Session
   std::exception receiver_ex;
 
   public:
+  ImapState get_state();
   Session(std::unique_ptr<Server> _server, std::unique_ptr<Receiver> _receiver);
   ~Session();
   void login(Credentials &creds);
   void select(const std::string mailbox);
+  void bye();
   std::vector<uint32_t> search(bool only_unseen);
   std::vector<std::string> fetch(std::vector<uint32_t> sequence_set,bool only_headers);
   void receive_greeting();
   void notify_incoming(std::unique_ptr<Response> response);
   void receiver_notify_failed(std::exception &ex);
+  void read_new();
 };
 
 #endif // SESSION_H_
