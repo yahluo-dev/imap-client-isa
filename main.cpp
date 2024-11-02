@@ -152,7 +152,10 @@ int main(int argc, char *argv[])
     session->login(creds);
     session->select(mailbox_name);
     seq_set = session->search(only_unseen);
-    messages = session->fetch(seq_set, only_headers);
+    if (seq_set.size() > 0)
+    {
+      messages = session->fetch(seq_set, only_headers);
+    }
   }
   catch (std::exception &ex)
   {
@@ -160,8 +163,19 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  std::cout << "Fetched " << messages.size() <<
-                (only_unseen ? "unseen messages" : "messages") << "." << std::endl;
+  size_t n_messages = messages.size();
+  if (0 != n_messages)
+  {
+    std::cout << "* Fetched " << n_messages << " " <<
+                  (only_unseen ? "unseen messages" : "messages") <<
+                  (only_headers ? " (headers)" : "") << "." << std::endl;
+  }
+  else
+  {
+    std::cout << "* " << "No" << (only_unseen ? " unseen" : "") << " messages " <<
+      "in mailbox \"" << mailbox_name << "\"" << std::endl;
+    return 0;
+  }
 
   FNV fnv;
   for (const auto& message : messages)
@@ -177,4 +191,6 @@ int main(int argc, char *argv[])
     save_to << message << std::endl;
     save_to.close();
   }
+
+  return 0;
 }

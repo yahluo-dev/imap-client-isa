@@ -410,16 +410,17 @@ bool ResponseParser::parse_mailbox_list()
  return false;
 }
 
+// *(SP nz-number)
 bool ResponseParser::parse_message_id_list(std::vector<uint32_t> &numbers)
 {
   save_pos();
-  do
+  while (match(" "))
   {
     int number;
     if (!parse_number(number))
       PARSE_FAIL
     numbers.push_back(number);
-  } while (match(" "));
+  };
 
   PARSE_SUCCESS
 }
@@ -489,7 +490,6 @@ bool ResponseParser::parse_mailbox_data(std::unique_ptr<Response> &parsed_respon
   }
   else if (match("SEARCH")) // "SEARCH" *(SP nz-number)
   {
-    EXPECT_MATCH(" ");
     std::vector<uint32_t> ids;
     if (!parse_message_id_list(ids))
       PARSE_FAIL
@@ -838,7 +838,10 @@ bool ResponseParser::parse_next(std::unique_ptr<Response> &parsed_response)
   else
   {
     logger.error_log("Parsing failed.");
-    throw std::runtime_error("Didn't understand the server's response! Response data: " + data.substr(start_pos, data.size()));
+    logger.error_log("Message was: ---------------");
+    logger.error_log(data.substr(start_pos, data.size()));
+    logger.error_log("End of message.-------------");
+    throw std::runtime_error("Didn't understand the server's response!");
   }
   assert(pos_stack.empty());
   assert(parsed_response != nullptr);
