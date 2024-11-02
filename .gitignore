@@ -17,4 +17,6 @@ doc/*.bcf
 doc/*.blg
 doc/*.run.xml
 doc/.auctex-auto
-
+doc/svg-inkscape/
+doc/imapcl-class.svg
+doc/*-ERROR
