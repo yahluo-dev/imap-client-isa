@@ -11,6 +11,7 @@
 #include "fnv.hpp"
 #include "tls_receiver.hpp"
 #include "credential.hpp"
+#include "imf_message.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -180,7 +181,9 @@ int main(int argc, char *argv[])
   FNV fnv;
   for (const auto& message : messages)
   {
-    std::string path = output_dir + "/" + fnv.hash(message) + ".eml";
+    IMFMessage imf_message(message);
+    std::string path = output_dir + "/" + fnv.hash(message) +
+      imf_message.get_datetime_formatted() + ".eml";
     std::ofstream save_to(path);
     if (!save_to)
     {
