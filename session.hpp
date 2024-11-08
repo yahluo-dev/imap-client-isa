@@ -49,7 +49,7 @@ class Session
   ~Session();
   void login(Credentials &creds);
   void select(const std::string mailbox);
-  void bye();
+  void logout();
   std::vector<uint32_t> search(bool only_unseen);
   std::vector<std::string> fetch(std::vector<uint32_t> sequence_set,bool only_headers);
   void receive_greeting();

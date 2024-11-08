@@ -45,12 +45,16 @@ void Client::repl()
     std::smatch match;
     if (std::cin.eof())
     {
-      session->bye();
+      session->logout();
       std::cout << "Closing session: Bye!" << std::endl;
       std::cout << std::endl;
       return;
     }
-    if (std::regex_search(input, match, Commands::DOWNLOADNEW))
+    if (std::regex_search(input, match, std::regex("HELP")))
+    {
+      std::cout << HELP;
+    }
+    else if (std::regex_search(input, match, Commands::DOWNLOADNEW))
     {
       std::string mailbox_name = match[2];
       if (mailbox_name.size() > 0)
@@ -59,6 +63,7 @@ void Client::repl()
       }
       std::vector<uint32_t> seq_set = session->search(true);
       std::vector<std::string> messages = session->fetch(seq_set, false);
+      save_mail(messages);
     }
     else if (std::regex_search(input, match, Commands::DOWNLOADALL))
     {
@@ -69,6 +74,7 @@ void Client::repl()
       }
       std::vector<uint32_t> seq_set = session->search(false);
       std::vector<std::string> messages = session->fetch(seq_set, false);
+      save_mail(messages);
     }
     else if (std::regex_search(input, match, Commands::READNEW))
     {
@@ -87,7 +93,7 @@ void Client::repl()
     }
     else
     {
-      std::cout << "?" << std::endl;
+      std::cout << "Please use one of the commands: \n" << HELP;
     }
   }
 }

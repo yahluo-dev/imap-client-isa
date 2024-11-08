@@ -116,7 +116,7 @@ void Session::read(std::vector<uint32_t> sequence_set)
   wait_for_response(); // TODO
 }
 
-void Session::bye()
+void Session::logout()
 {
   server->send(std::make_unique<LogoutCommand>(get_new_tag()));
 }
