@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 #include <stdint.h>
-#include "message.hpp"
 
 enum class ResponseType
 {
@@ -40,9 +39,9 @@ class Response
 class StatusResponse : public Response // OK, NO, BAD, PREAUTH, BYE
 {
   private:
-  public:
   std::string text;
   std::string tag;
+  public:
   StatusResponse(ResponseType _type, std::string _tag, std::string text);
   std::string get_text();
   ResponseType get_type();
