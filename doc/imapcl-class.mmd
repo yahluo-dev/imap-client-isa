@@ -12,6 +12,9 @@ classDiagram
   note for Client "Handles interaction with the user, including a REPL in interactive mode"
 
   class ResponseParser {
+    -string data
+    -int curr_pos
+    -stack<int> pos_stack
     +ResponseParser(data: string)
     +Response *parse_next()
   }
@@ -53,13 +56,14 @@ classDiagram
   %% SELECTED
 
   class SearchCommand {
+   -string search_criteria
    +SearchCommand(tag: string, \nsearch_criteria: string)
   }
 
   class FetchCommand {
-    -vector<int> sequence_set
-    -FetchType type
-    +FetchCommand(tag: string, \nseq_set: string, data_item: string)
+    -int[] sequence_set
+    -string data_item
+    +FetchCommand(tag: string, \nseq_set: string[], data_item: string)
   }
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -67,20 +71,20 @@ classDiagram
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   class Response {
-    +ResponseType type
+    -ResponseType type
   }
 
   class StatusResponse {
-    +Tag tag
-    +string text
+    -Tag tag
+    -string text
   }
 
   class SearchResponse {
-     messages
+    -int[] seq_numbers
   }
 
   class FlagsResponse {
-   string flag_string
+   no fields
   }
 
   class SingleNumberResponse {
@@ -100,7 +104,7 @@ classDiagram
    - int client_socket
    - receive_inner()
    + Receiver(Server &server)
-   + receive(Session &server)
+   + receive(Session &session)
   }
 
   class TLSReceiver {
@@ -117,6 +121,14 @@ classDiagram
     -ImapState state
     -string username
     -string password
+    -int last_tag
+    -string get_new_tag()
+    +login(creds: Credentials)
+    +select(mailbox: string)
+    +logout()
+    +search(only_unseen: bool)
+    +fetch(seq_set: int[], headers: bool)
+    +read(seq_set: int[])
   }
 
   note for Session "Handles user actions as sequences of requests on a high level"
@@ -132,6 +144,20 @@ classDiagram
     +void send_command()
     +void receive_response()
   }
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %% IMFMessage
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  class IMFMessage {
+   -string data
+   +get_datetime()
+   +IMFMessage(_data: string)
+  }
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %% IMFMessage
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   note for Server "Implements low-level connection and TLS-related logic"
 
@@ -160,6 +186,8 @@ classDiagram
   Response <|-- FlagsResponse
   Response <|-- SingleNumberResponse
   Response <|-- FetchResponse
+
+  FetchResponse -- IMFMessage : << instantiates >>
 
   Receiver <|-- TLSReceiver
 
