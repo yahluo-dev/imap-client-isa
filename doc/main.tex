@@ -10,7 +10,7 @@
 \usepackage{adjustbox}
 \usepackage[
 backend=biber,
-style=alphabetic,
+style=numeric,
 sorting=ynt
 ]{biblatex}
 \addbibresource{bibliography.bib}
@@ -29,37 +29,33 @@ sorting=ynt
 
 \chapter{Introduction}
 
-\textbf{imapcl} is an IMAP4rev1\cite{rfc3501} client able to fetch messages from a server. Besides plain-text communication, it also supports communication secured by TLS with the help of the OpenSSL library.
+{\Large\textbf{imapcl}} is an IMAP4rev1\cite{rfc3501} client able to fetch messages from a server. Besides plain-text communication, it also supports communication secured by TLS with the help of the OpenSSL library.
 
 \section{IMAP}
 
-\textbf{IMAP} Version 4rev1 is an application-level protocol that allows for access and manipulation of electronic mail messages on a server. In particular, it supports creating, deleting, and renaming mailboxes, checking for new messages, removing messages and manipulating flags.
+\textbf{IMAP} Version 4rev1 is an application-level protocol that allows for access and manipulation of electronic mail messages on a server. In particular, it supports creating, deleting, and renaming mailboxes, checking for new messages, removing messages and manipulating flags\cite{rfc3501}.
 
 \section{SSL/TLS}
 
-TLS (Transport Layer security) allows client/server applications to communicate over the Internet in a way protected against eavesdropping, tampering, and message forgery\cite{rfc8446}.
+\textbf{TLS} (Transport Layer security) allows client/server applications to communicate over the Internet in a way protected against eavesdropping, tampering, and message forgery\cite{rfc8446}.
 
-TLS was introduced as a replacement for the SSL 2.0 protocol, which featured serious vulnerabilities, leading to it being abandoned\cite{rfc6176}.
+TLS was introduced as a replacement for the SSL 2.0 protocol, which was discovered to be seriously vulnerable, leading to it being abandoned\cite{rfc6176}.
 
 \subsection{Asymmetric cryptography}
 
-\textbf{Asymmetric cryptography} refers to cryptographic methods and algorithms that do not ask that the two counterparts share the same key, and it is instead decided upon during the key exchange process (e.g. Diffie-Hellman Key Exchange). TLS/SSL can be configured for use both with the key exchange algorithm, or with a pre-shared key (TLS-PSK).
+\textbf{Asymmetric cryptography} refers to cryptographic methods and algorithms that do not require that the two counterparts share the same key pre-shared over a secure channel, but the key is instead shared during the key exchange process over an insecure channel(e.g. Diffie-Hellman Key Exchange). TLS/SSL can be configured for use both with the key exchange algorithm, or with a pre-shared key (TLS-PSK)\cite{8446}.
 
 \subsection{Connection initiation}
 
-TLS works over TCP, hence first a TCP handshake is performed, and then a TLS handshake. During the TLS handshake, the counterparts negotiate the connection according to their supported protocol versions and cipher suites, exchange and verify each other's certificates against the \textit{authorities} whom the verifying side trusts.
+TLS works over TCP, hence first a TCP handshake is performed, followed by a TLS handshake. During the TLS handshake, the counterparts negotiate the connection according to their supported protocol versions and cipher suites, exchange and verify each other's certificates against the \textit{authorities} whom the verifying side trusts.
 
 \begin{enumerate}
-  \item Client sends a \texttt{Client Hello} message to the server, in particular highest \textit{TLS Version} supported, a list of supported \textit{cipher suites}, a \textit{random number} for key generation, followed by standardized extensions and other fields.
-  \item Server sends a \texttt{Server Hello} message to the client, including, among other information, selected \textit{TLS Version}, and the server's \textit{random number}.
-  \item The server sends its certificate to the client, and the client may send its certificate to the server upon request.
+  \item Client sends a \texttt{Client Hello} message to the server, containing its highest \textit{TLS Version} supported, a list of supported \textit{cipher suites}, a \textit{random number} for key generation, followed by standardized extensions and other fields.
+  \item Server sends a \texttt{Server Hello} message to the client, including, among other information, the selected \textit{TLS Version}, and the server's \textit{random number}.
+  \item The server sends its certificate to the client, and the client may send its certificate to the server upon request to check each other's identity against an authority.
 \end{enumerate}
 
-The server may also request additional information from the client instead of sending a \texttt{Server Hello} (a \texttt{Hello Retry Request})\cite{rfc8446}.
-
-\subsection{Connection termination}
-
-The connection is terminated
+The server may also request additional information from the client instead of sending a \texttt{Server Hello} (a \texttt{Hello Retry Request}), if the server requires additional information\cite{rfc8446}.
 
 \subsection{Certificates and CAs}
 
@@ -76,11 +72,40 @@ A \textbf{Certification Authority} (CA) is a party which is trusted by a group o
 
 \chapter{Design}
 
-IMAP is a comparatively complex protocol, and its context-free grammar asks for a more advanced parsing method than mere regular expression matching. Recursive descent parsers, on the other hand, are widely used for analyzing context-free languages, including network protocols. The parser implementation thus turned out straightforward, albeit requiring some care and debugging.
+
+\section{Response Parsing}
+
+\textbf{IMAP} is a comparatively complex protocol, and its context-free grammar asks for a more advanced parsing method than mere regular expression matching. Recursive descent parsers, on the other hand, are widely used for analyzing context-free languages, including network protocols. The parser implementation thus turned out straightforward, albeit requiring some care and debugging.
+
+\section{Messages}
+
+Messages are represented in the design as classes that inherit from either \texttt{Command} or \texttt{Response} abstract classes. Every command has a tag, which is empty for non-tagged commands, and a type, which identifies its role in the protocol. Similarly, every \texttt{Response} has a type and some subclasses have tags. % TODO: Think if it's a correct design
+
+\section{Message receipt}
+
+The response receipt mechanism is designed as a class that notifies the \texttt{Session} object of any incoming message.
+
+\section{Diagrams}
+
+\begin{figure}
+  \centering
+  \includegraphics*[width=0.33\textwidth]{imapcl-state.png}
+  \caption{State diagram}
+  \label{state}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \rotatebox{90}{\includegraphics*[width=1.5\textwidth]{imapcl-class.png}}
+  %%\rotatebox{90}{\includesvg[width=1.5\textwidth]{imapcl-class.svg}[h]} %% Inkscape doesn't read the file properly for some reason when called by latexmk
+  \caption{Class diagram}
+  \label{class}
+\end{figure}
+
 
 \chapter{Implementation}
 
-The program is implemented in \textit{C++20}. In view of limited support for C++20 on the reference machine with \textit{GCC 11.5.0}, not all features of the standard could be used in the project, including missing support for \texttt{std::format}. Nevertheless, the limitations proved to be insignificant to the project as a whole and caused minimal problems.
+The program is implemented in \textit{C++20}. In view of limited support for C++20 on the reference machine with \textit{GCC 11.5.0}, not all features of the standard could be used in the project. Nevertheless, the limitations proved to be insignificant to the project as a whole and caused minimal problems.
 
 \section{Dependencies}
 
@@ -109,7 +134,8 @@ The program is implemented in \textit{C++20}. In view of limited support for C++
 \item \texttt{server.hpp, server.cpp} - Class initializing the socket and managing message sending
 \item \texttt{tls\_server.hpp, tls\_server.cpp} - Server subclass adding SSL/TLS initialization and management
 \item \texttt{session.hpp, session.cpp} - Class managing user actions on a high level
-\item \texttt{client.hpp, client.cpp} - \TODO
+\item \texttt{client.hpp, client.cpp} - A class implementing a REPL to interact with the user in interactive mode.
+\item \texttt{imf\_message.hpp, imf\_message.cpp} - A class implementing parsing of some components of a message in IMF format.
 \item \texttt{test/} - Directory with test files, further documented in \textit{Testing}.
 \end{itemize}
 
@@ -133,6 +159,14 @@ The \texttt{Command} class contains \texttt{type} and \texttt{tag} protected mem
 
 The response class has a \texttt{type}, as well as a \texttt{tag} (again, empty for non-tagged responses).
 
+\subsection{Client}
+
+The client class has a \TODO
+
+\subsection{IMFMessage}
+
+IMFMessage is a class for parsing of selected parts of a message in IMF format\cite{rfc5322}. It is only used to generate reasonable file names for downloaded messages. It can parse the \texttt{Date:} header in the message.
+
 \subsection{Logger}
 
 The \texttt{Logger} class has 3 methods for logging debug information, errors and general information accordingly.
@@ -146,7 +180,6 @@ The \texttt{Server} class has a buffer for incoming responses, and constructor w
 \section{Limitations}
 
 \begin{itemize}
-  \item File names do not contain any information about the messages
   \item No support for message continuation requests
 \end{itemize}
 
@@ -178,6 +211,7 @@ $ imapcl SERVER [-p port] [-T [-c certfile] [-C certaddr]] [-n] [-h]
     \texttt{-a AUTH\_FILE}& File with login credentials to use\\
     \texttt{-b MAILBOX}  & Mailbox to use on the server (default INBOX)\\
     \texttt{-o OUT\_DIR}  & Directory to store downloaded messages\\
+    \texttt{-i}          & Start the program in interactive mode\\
     \hline
   \end{tabular}
   \caption{Command line options description}
@@ -229,11 +263,9 @@ Fetched 1 unseen messages.
 \begin{itemize}
 \item \texttt{test/make\_tcp.cpp} - \texttt{make\_tcp()} tests for \texttt{Command} and its subclasses
 \item \texttt{test/parse\_response.cpp} - Tests for the response parser
+\item \texttt{test/imf\_message.cpp} - Tests for the \texttt{IMFMessage} class
 \item \texttt{test/test\_main.cpp} - Initialization of the Google Test framework
 \end{itemize}
-
-
-\chapter{Appendix}
 
 \section{Testing results}
 
@@ -290,27 +322,11 @@ logger.o parser_logger.o -o imapcl-tests
 \caption{Running the tests}
 \end{figure}
 
-\section{Diagrams}
-
-\begin{figure}[t]
-  \centering
-  \rotatebox{90}{\includegraphics*[width=1.5\textwidth]{imapcl-class.png}}
-  %%\rotatebox{90}{\includesvg[width=1.5\textwidth]{imapcl-class.svg}[h]} %% Inkscape doesn't read the file properly for some reason when called by latexmk
-  \caption{Class diagram}
-  \label{class}
-\end{figure}
-
-\begin{figure}
-  \centering
-  \includegraphics*[width=0.7\textwidth]{imapcl-state.png}
-  \caption{State diagram}
-  \label{state}
-\end{figure}
 
 \chapter{Further development}
 
 \begin{itemize}
-  \item Possibly add support for using a gpg encrypted credential file, thus not forcing the user to have the credentials in plain text.
+  \item Currently, the user has to store the credentials in a plain-text file. It would be reasonable to support encrypted authorisation files (e.g. using gpg).
 \end{itemize}
 
 \printbibliography
