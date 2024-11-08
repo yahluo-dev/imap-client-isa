@@ -12,6 +12,7 @@
 #include "tls_receiver.hpp"
 #include "credential.hpp"
 #include "imf_message.hpp"
+#include "client.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -24,13 +25,14 @@ int main(int argc, char *argv[])
 
   bool only_unseen = false;
   bool only_headers = false;
+  bool interactive = false;
   std::string mailbox_name = "INBOX";
   std::string cert_dir = "/etc/ssl/certs";
   std::string cert_file;
   std::string output_dir;
   std::string auth_file;
 
-  while (-1 != (opt_char = getopt(argc, argv, "p:Tc:C:nha:b:o:")))
+  while (-1 != (opt_char = getopt(argc, argv, "p:Tc:C:nha:b:o:i")))
   {
     switch(opt_char)
     {
@@ -53,6 +55,11 @@ int main(int argc, char *argv[])
       case 'a':
       {
         auth_file = optarg;
+        break;
+      }
+      case 'i':
+      {
+        interactive = true;
         break;
       }
       case 'n':
@@ -122,19 +129,16 @@ int main(int argc, char *argv[])
   }
 
   std::unique_ptr<Server> server;
-  std::unique_ptr<Receiver> receiver;
 
   try
   {
     if (use_tls)
     {
       server = std::make_unique<TLSServer>(server_hostname, port_number, cert_file, cert_dir);
-      receiver = std::make_unique<TLSReceiver>(dynamic_cast<TLSServer &>(*server));
     }
     else
     {
       server = std::make_unique<Server>(server_hostname, port_number);
-      receiver = std::make_unique<Receiver>(*server);
     }
   }
   catch (std::exception &ex)
@@ -143,57 +147,71 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  std::unique_ptr<Session> session = std::make_unique<Session>(std::move(server), std::move(receiver));
+  std::unique_ptr<Session> session = std::make_unique<Session>();
+  session->connect(std::move(server));
 
-  std::vector<uint32_t> seq_set;
-  std::vector<std::string> messages;
-  try
+  if (interactive)
   {
     session->receive_greeting();
     session->login(creds);
     session->select(mailbox_name);
-    seq_set = session->search(only_unseen);
-    if (seq_set.size() > 0)
-    {
-      messages = session->fetch(seq_set, only_headers);
-    }
-  }
-  catch (std::exception &ex)
-  {
-    logger.error_log(ex.what());
-    return 1;
-  }
-
-  size_t n_messages = messages.size();
-  if (0 != n_messages)
-  {
-    std::cout << "* Fetched " << n_messages << " " <<
-                  (only_unseen ? "unseen messages" : "messages") <<
-                  (only_headers ? " (headers)" : "") << "." << std::endl;
+    std::unique_ptr<Client> client = std::make_unique<Client>(std::move(session), output_dir);
+    client->repl();
   }
   else
   {
-    std::cout << "* " << "No" << (only_unseen ? " unseen" : "") << " messages " <<
-      "in mailbox \"" << mailbox_name << "\"" << std::endl;
-    return 0;
-  }
-
-  FNV fnv;
-  for (const auto& message : messages)
-  {
-    IMFMessage imf_message(message);
-    std::string path = output_dir + "/" + fnv.hash(message) +
-      imf_message.get_datetime_formatted() + ".eml";
-    std::ofstream save_to(path);
-    if (!save_to)
+    std::vector<uint32_t> seq_set;
+    std::vector<std::string> messages;
+    try
     {
-      logger.error_log("Could not open " + path + " for writing.");
+      session->receive_greeting();
+      session->login(creds);
+      session->select(mailbox_name);
+      seq_set = session->search(only_unseen);
+      if (seq_set.size() > 0)
+      {
+        messages = session->fetch(seq_set, only_headers);
+      }
+    }
+    catch (std::exception &ex)
+    {
+      logger.error_log(ex.what());
       return 1;
     }
 
-    save_to << message << std::endl;
-    save_to.close();
+    size_t n_messages = messages.size();
+    if (0 != n_messages)
+    {
+      std::cout << "* Fetched " << n_messages << " " <<
+                    (only_unseen ? "unseen messages" : "messages") <<
+                    (only_headers ? " (headers)" : "") << "." << std::endl;
+    }
+    else
+    {
+      std::cout << "* " << "No" << (only_unseen ? " unseen" : "") << " messages " <<
+        "in mailbox \"" << mailbox_name << "\"" << std::endl;
+      return 0;
+    }
+
+    FNV fnv;
+    for (const auto& message : messages)
+    {
+      IMFMessage imf_message(message);
+      std::string path = output_dir + "/" + fnv.hash(message) +
+        imf_message.get_datetime_formatted() + ".eml";
+      std::ofstream save_to(path);
+      if (!save_to)
+      {
+        logger.error_log("Could not open " + path + " for writing.");
+        return 1;
+      }
+
+      save_to << message << std::endl;
+      save_to.close();
+    }
+  
   }
+
 
   return 0;
 }

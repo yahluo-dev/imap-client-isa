@@ -24,8 +24,4 @@ public:
   Client(std::unique_ptr<Session> _session, std::string _mail_dir);
 };
 
-const std::regex Client::Commands::DOWNLOADNEW("DOWNLOADNEW ([a-zA-Z0-9-_]{1,128})", std::regex_constants::ECMAScript);
-const std::regex Client::Commands::DOWNLOADALL("DOWNLOADALL ([a-zA-Z0-9-_]{1,128})", std::regex_constants::ECMAScript);
-const std::regex Client::Commands::READNEW("READNEW", std::regex_constants::ECMAScript);
-
 #endif // CLIENT_H_

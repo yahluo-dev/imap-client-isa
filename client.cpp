@@ -2,11 +2,13 @@
 #include "client.hpp"
 #include "fnv.hpp"
 
+const std::regex Client::Commands::DOWNLOADNEW("DOWNLOADNEW( ([a-zA-Z0-9-_]{1,128}))?", std::regex_constants::ECMAScript);
+const std::regex Client::Commands::DOWNLOADALL("DOWNLOADALL( ([a-zA-Z0-9-_]{1,128}))?", std::regex_constants::ECMAScript);
+const std::regex Client::Commands::READNEW("READNEW", std::regex_constants::ECMAScript);
 
 Client::Client(std::unique_ptr<Session> _session, std::string _mail_dir)
   : session(std::move(_session)), mail_dir(_mail_dir), logger(std::cerr)
-{
-}
+{}
 
 void Client::print_prompt()
 {
@@ -33,7 +35,7 @@ void Client::save_mail(std::vector<std::string> messages)
 
 void Client::repl()
 {
-  std::cout << "Type HELP to get help. Exit with ^D." << std::endl;
+  std::cout << "Interactive mode. Type HELP to get help. Exit with ^D." << std::endl;
 
   std::string input;
   while(true)
@@ -50,11 +52,21 @@ void Client::repl()
     }
     if (std::regex_search(input, match, Commands::DOWNLOADNEW))
     {
+      std::string mailbox_name = match[2];
+      if (mailbox_name.size() > 0)
+      {
+        session->select(mailbox_name);
+      }
       std::vector<uint32_t> seq_set = session->search(true);
       std::vector<std::string> messages = session->fetch(seq_set, false);
     }
     else if (std::regex_search(input, match, Commands::DOWNLOADALL))
     {
+      std::string mailbox_name = match[2];
+      if (mailbox_name.size() > 0)
+      {
+        session->select(mailbox_name);
+      }
       std::vector<uint32_t> seq_set = session->search(false);
       std::vector<std::string> messages = session->fetch(seq_set, false);
     }
@@ -67,6 +79,10 @@ void Client::repl()
     else if (input.empty())
     {
       continue;
+    }
+    else
+    {
+      std::cout << "?" << std::endl;
     }
   }
 }
