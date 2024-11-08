@@ -2,6 +2,7 @@
 #include <openssl/err.h>
 #include <iostream>
 #include "tls_server.hpp"
+#include "tls_receiver.hpp"
 
 SSL *TLSServer::get_ssl()
 {
@@ -44,6 +45,13 @@ void TLSServer::send(std::unique_ptr<Command> command)
   SSL_write(ssl, to_send.c_str(), to_send.size());
 }
 
+void TLSServer::receive(Session &session)
+{
+  receiving_thread = std::thread([this, &session]() {
+    this->receiver->receive(session);
+  });
+}
+
 TLSServer::TLSServer(const std::string hostname, const std::string port, const std::string _cert_file, const std::string _cert_dir)
   : Server(hostname, port), cert_dir(_cert_dir), cert_file(_cert_file) // NOTE: Careful with argument order
 {
@@ -65,6 +73,8 @@ TLSServer::TLSServer(const std::string hostname, const std::string port, const s
   {
     std::cout << "Connected with " << SSL_get_cipher(ssl) << " encryption" << std::endl;
   }
+
+  receiver = std::make_unique<TLSReceiver>(ssl);
 }
 
 TLSServer::~TLSServer()

@@ -51,11 +51,20 @@ Server::Server(const std::string hostname, const std::string port)
   tv.tv_sec = TIMEOUT_S;
   tv.tv_usec = 0;
   setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+
+  receiver = std::make_unique<Receiver>(client_socket);
 }
 
 int Server::get_socket()
 {
   return client_socket;
+}
+
+void Server::receive(Session &session)
+{
+  receiving_thread = std::thread([this, &session]() {
+    this->receiver->receive(session);
+  });
 }
 
 void Server::send(std::unique_ptr<Command> command)
@@ -66,5 +75,7 @@ void Server::send(std::unique_ptr<Command> command)
 
 Server::~Server()
 {
+  receiver->stopped = true;
+  receiving_thread.join();
   close(client_socket);
 }

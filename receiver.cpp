@@ -4,6 +4,7 @@
 #include <netdb.h>
 #include "receiver.hpp"
 #include "response_parser.hpp"
+#include "session.hpp"
 
 
 std::string Receiver::received_data;
@@ -14,9 +15,9 @@ Receiver::Receiver()
 {
 }
 
-Receiver::Receiver(Server &server)
+Receiver::Receiver(int sock)
 {
-  client_socket = server.get_socket();
+  client_socket = sock;
 }
 
 std::string Receiver::receive_inner()

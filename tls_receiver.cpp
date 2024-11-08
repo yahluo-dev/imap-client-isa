@@ -1,10 +1,11 @@
 #include "tls_receiver.hpp"
+#include <stdexcept>
 
 SSL *TLSReceiver::ssl;
 
-TLSReceiver::TLSReceiver(TLSServer &tls_server)
+TLSReceiver::TLSReceiver(SSL *_ssl)
 {
-  ssl = tls_server.get_ssl();
+  ssl = _ssl;
 }
 
 std::string TLSReceiver::receive_inner()

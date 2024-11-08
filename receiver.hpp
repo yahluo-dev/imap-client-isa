@@ -3,10 +3,6 @@
 
 #include <string>
 
-#include "session.hpp"
-
-#include "server.hpp"
-
 class Session;
 
 class Receiver
@@ -18,7 +14,7 @@ protected:
   virtual std::string receive_inner();
 public:
   Receiver();
-  Receiver(Server &_server);
+  Receiver(int sock);
   static volatile bool stopped;
   void receive(Session& session);
 };

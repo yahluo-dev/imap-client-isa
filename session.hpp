@@ -7,12 +7,9 @@
 #include <mutex>
 #include <queue>
 #include <thread>
-#include "receiver.hpp"
 #include "server.hpp"
 #include "credential.hpp"
 #include "logger.hpp"
-
-class Receiver;
 
 enum class ImapState
 {
@@ -34,7 +31,6 @@ class Session
   std::string username;
   std::string password;
   std::unique_ptr<Server> server;
-  std::unique_ptr<Receiver> receiver;
   std::string get_new_tag();
   void transition(ImapState state);
   Logger logger;
@@ -49,7 +45,7 @@ class Session
 
   public:
   ImapState get_state();
-  Session(std::unique_ptr<Server> _server, std::unique_ptr<Receiver> _receiver);
+  Session();
   ~Session();
   void login(Credentials &creds);
   void select(const std::string mailbox);
@@ -60,6 +56,7 @@ class Session
   void notify_incoming(std::unique_ptr<Response> response);
   void receiver_notify_failed(std::exception &ex);
   void read_new(std::vector<uint32_t> sequence_set);
+  void connect(std::unique_ptr<Server> _server);
 };
 
 #endif // SESSION_H_
