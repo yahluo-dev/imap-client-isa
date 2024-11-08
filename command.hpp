@@ -63,4 +63,24 @@ class FetchCommand: public Command
   std::string make_tcp() override;
 };
 
+class StoreCommand : public Command
+{
+  private:
+  std::vector<uint32_t> sequence_set;
+  std::string data_item_name;
+  std::string data_item_value;
+  public:
+  explicit StoreCommand(std::string _tag, std::vector<uint32_t> sequence_set,
+                        std::string _data_item_name, std::string _data_item_value);
+  std::string make_tcp() override;
+};
+
+class LogoutCommand : public Command
+{
+  private:
+  public:
+  explicit LogoutCommand(std::string _tag);
+  std::string make_tcp() override;
+};
+
 #endif // COMMAND_H_

@@ -2,7 +2,6 @@
 #include "../response_parser.hpp"
 
 
-
 TEST(ResponseParserParseTests, LoginNoError)
 {
   std::string test_data = "A001 OK LOGIN completed.\r\n";

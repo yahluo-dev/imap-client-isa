@@ -60,7 +60,8 @@ void Client::repl()
     }
     else if (std::regex_search(input, match, Commands::READNEW))
     {
-      session->read_new();
+      std::vector<uint32_t> seq_set = session->search(false);
+      session->read_new(seq_set); // Not necessary to include the set
       std::cout << "All messages marked as read." << std::endl;
     }
     else if (input.empty())

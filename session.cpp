@@ -105,14 +105,23 @@ Session::~Session()
   receiving_thread.join();
 }
 
-void Session::read_new()
+void Session::read_new(std::vector<uint32_t> sequence_set)
 {
-  throw std::logic_error("Not implemented.");
+  if (state != ImapState::SELECTED)
+  {
+    throw std::logic_error("Can only issue this command in SELECTED state.");
+  }
+
+  server->send(std::make_unique<StoreCommand>(get_new_tag(), sequence_set,
+                                              "+FLAGS", "\\Seen"));
+
+  std::unique_ptr<Response> response = wait_for_response();
+  wait_for_response(); // TODO
 }
 
 void Session::bye()
 {
-  throw std::logic_error("Not implemented.");
+  server->send(std::make_unique<LogoutCommand>(get_new_tag()));
 }
 
 void Session::transition(ImapState _state)

@@ -32,6 +32,15 @@ FetchCommand::FetchCommand(std::string _tag, std::vector<uint32_t> _sequence_set
   : Command(_tag), sequence_set(_sequence_set), data_item(_data_item)
 {}
 
+StoreCommand::StoreCommand(std::string _tag, std::vector<uint32_t> _sequence_set,
+             std::string _data_item_name, std::string _data_item_value)
+  : Command(_tag), sequence_set(_sequence_set), data_item_name(_data_item_name), data_item_value(_data_item_value)
+{};
+
+LogoutCommand::LogoutCommand(std::string _tag)
+  : Command(_tag)
+{};
+
 std::string LoginCommand::make_tcp()
 {
   std::stringstream ss;
@@ -69,5 +78,28 @@ std::string FetchCommand::make_tcp()
   }
   ss << " " << data_item << "\r\n";
 
+  return ss.str();
+}
+
+std::string StoreCommand::make_tcp()
+{
+  std::stringstream ss;
+  ss << tag << " STORE";
+  if (sequence_set.empty())
+    throw std::logic_error("Sequence set empty!"); // TODO: Test this
+  ss << " " << sequence_set[0];
+  for (auto it = sequence_set.begin() + 1; it != sequence_set.end(); ++it)
+  {
+    ss << "," << *it;
+  }
+  ss << " " << data_item_name << " " << data_item_value << "\r\n";
+
+  return ss.str();
+}
+
+std::string LogoutCommand::make_tcp()
+{
+  std::stringstream ss;
+  ss << tag << " LOGOUT" << "\r\n";
   return ss.str();
 }
