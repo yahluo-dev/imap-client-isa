@@ -55,7 +55,7 @@ class Session
   void receive_greeting();
   void notify_incoming(std::unique_ptr<Response> response);
   void receiver_notify_failed(std::exception &ex);
-  void read_new(std::vector<uint32_t> sequence_set);
+  void read(std::vector<uint32_t> sequence_set);
   void connect(std::unique_ptr<Server> _server);
 };
 

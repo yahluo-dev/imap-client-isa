@@ -102,7 +102,7 @@ void Session::connect(std::unique_ptr<Server> _server)
 Session::~Session()
 {}
 
-void Session::read_new(std::vector<uint32_t> sequence_set)
+void Session::read(std::vector<uint32_t> sequence_set)
 {
   if (state != ImapState::SELECTED)
   {

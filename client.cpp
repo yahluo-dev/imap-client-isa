@@ -72,8 +72,13 @@ void Client::repl()
     }
     else if (std::regex_search(input, match, Commands::READNEW))
     {
+      std::string mailbox_name = match[2];
+      if (mailbox_name.size() > 0)
+      {
+        session->select(mailbox_name);
+      }
       std::vector<uint32_t> seq_set = session->search(false);
-      session->read_new(seq_set); // Not necessary to include the set
+      session->read(seq_set);
       std::cout << "All messages marked as read." << std::endl;
     }
     else if (input.empty())
