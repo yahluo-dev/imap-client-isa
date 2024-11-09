@@ -13,11 +13,14 @@ TESTEXE=imapcl-tests
 LOGIN=xvasil10
 test_objects=test/test_main.o test/make_tcp.o test/parse_response.o test/imf_message.cpp
 
-all: debug
+all: release
 tar: $(LOGIN).tar
 
 debug: CXXFLAGS += $(debug_flags)
 debug: $(EXE)
+
+release: CXXFLAGS += $(release_flags)
+release: $(EXE)
 
 test: CXXFLAGS += $(test_flags)
 test: CXXFLAGS += $(debug_flags)
@@ -37,7 +40,7 @@ test/%.o: test/%.cpp
 	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
 $(LOGIN).tar:
-	tar -cvf $@ *.cpp *.hpp README.md
+	tar -cvf $@ *.cpp *.hpp README.md test/*.cpp
 
 clean:
 	$(RM) $(EXE) *.o test/*.o
