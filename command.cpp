@@ -86,7 +86,7 @@ std::string StoreCommand::make_tcp()
   std::stringstream ss;
   ss << tag << " STORE";
   if (sequence_set.empty())
-    throw std::logic_error("Sequence set empty!"); // TODO: Test this
+    throw std::logic_error("Sequence set empty!");
   ss << " " << sequence_set[0];
   for (auto it = sequence_set.begin() + 1; it != sequence_set.end(); ++it)
   {

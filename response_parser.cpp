@@ -190,7 +190,6 @@ bool ResponseParser::parse_resp_text_code()
       }
   }
   PARSE_FAIL
-  // TODO
 }
 
 // resp-text       = ["[" resp-text-code "]" SP] text
@@ -406,7 +405,6 @@ bool ResponseParser::parse_flag_list()
 
 bool ResponseParser::parse_mailbox_list()
 {
- // TODO
  return false;
 }
 
@@ -503,7 +501,7 @@ bool ResponseParser::parse_mailbox_data(std::unique_ptr<Response> &parsed_respon
     EXPECT_MATCH(" ");
     EXPECT_MATCH("(");
     throw std::logic_error("Not implemented.");
-    // while (parse_status-att-list()) // TODO
+    // while (parse_status-att-list())
     // ;
     EXPECT_MATCH(")");
     PARSE_SUCCESS

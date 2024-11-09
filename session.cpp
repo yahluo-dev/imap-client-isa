@@ -113,7 +113,7 @@ void Session::read(std::vector<uint32_t> sequence_set)
                                               "+FLAGS", "\\Seen"));
 
   std::unique_ptr<Response> response = wait_for_response();
-  wait_for_response(); // TODO
+  wait_for_response();
 }
 
 void Session::logout()
