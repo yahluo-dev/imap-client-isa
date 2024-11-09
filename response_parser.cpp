@@ -462,7 +462,7 @@ bool ResponseParser::parse_mailbox_data(std::unique_ptr<Response> &parsed_respon
     if (!parse_flag_list())
     {
       restore_pos();
-      return false; // Can this even happen for a valid string?
+      return false;
     }
     parsed_response = std::make_unique<FlagsResponse>();
     pop_pos();
@@ -501,7 +501,7 @@ bool ResponseParser::parse_mailbox_data(std::unique_ptr<Response> &parsed_respon
     EXPECT_MATCH(" ");
     EXPECT_MATCH("(");
     throw std::logic_error("Not implemented.");
-    // while (parse_status-att-list())
+    // while (parse_status-att-list()) // Occurs as a result of STATUS command, we don't have it
     // ;
     EXPECT_MATCH(")");
     PARSE_SUCCESS
@@ -589,7 +589,7 @@ bool ResponseParser::parse_msg_att_static(std::string &message_contents)
     throw std::logic_error("Not implemented");
   else if (match("RFC822.SIZE"))
     throw std::logic_error("Not implemented");
-  else if (match("BODY"))
+  else if (match("BODY")) // We're only fetching the body, so not implementing other parts
   {
     if (match("STRUCTURE"))
     {
