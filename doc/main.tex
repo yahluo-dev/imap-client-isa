@@ -167,6 +167,10 @@ The client class contains a constant structure with regular expressions for comm
 
 IMFMessage is a class for parsing of selected parts of a message in IMF format\cite{rfc5322}. It is only used to generate reasonable file names for downloaded messages. It can parse the \texttt{Date:} header in the message.
 
+\subsection{Receiver}
+
+Receiver is a class whose \texttt{receive} method runs in a separate thread and notifies the Session when there is a new incoming message. TLSReceiver uses TLS/SSL communication instead of plain sockets. The virtual \texttt{receive_inner} method implements the subclass-specific logic, containing the recv() or SSL_read() call. Receiver runs in an infinite loop until the \texttt{stopped} value is \texttt{true}. The socket timeout is set up so that it is possible to stop the receiver thread at any time; if recv() times out, the loop checks the \texttt{stopped} value and continues, not notifying the session. If some data was received, the session is immediately notified.
+
 \subsection{Logger}
 
 The \texttt{Logger} class has 3 methods for logging debug information, errors and general information accordingly.
@@ -180,6 +184,7 @@ The \texttt{Server} class has a buffer for incoming responses, and constructor w
 \section{Limitations}
 
 \begin{itemize}
+  \item When the program finishes and the destructor of \texttt{Session} is called, it can take up to 1 second before the receiver thread times out, leaves uninterruptible sleep, and is joined.
 \end{itemize}
 
 \chapter{Usage}
