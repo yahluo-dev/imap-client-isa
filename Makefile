@@ -40,7 +40,8 @@ test/%.o: test/%.cpp
 	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
 $(LOGIN).tar:
-	tar -cvf $@ *.cpp *.hpp README.md test/*.cpp
+	cp doc/main.pdf ./manual.pdf
+	tar -cvf $@ *.cpp *.hpp README.md test/*.cpp manual.pdf
 
 clean:
 	$(RM) $(EXE) *.o test/*.o
