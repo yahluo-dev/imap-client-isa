@@ -31,6 +31,12 @@ sorting=ynt
 
 {\Large\textbf{imapcl}} is an IMAP4rev1\cite{rfc3501} client able to fetch messages from a server. Besides plain-text communication, it also supports communication secured by TLS with the help of the OpenSSL library.
 
+\texittt{Implemented extensions:}
+\begin{itemize}
+  \item Interactive mode (-i)
+%  \item STARTTLS
+\end{itemize}
+
 \section{IMAP}
 
 \textbf{IMAP} Version 4rev1 is an application-level protocol that allows for access and manipulation of electronic mail messages on a server. In particular, it supports creating, deleting, and renaming mailboxes, checking for new messages, removing messages and manipulating flags\cite{rfc3501}.
@@ -81,9 +87,9 @@ A \textbf{Certification Authority} (CA) is a party which is trusted by a group o
 
 Messages are represented in the design as classes that inherit from either \texttt{Command} or \texttt{Response} abstract classes. Every command has a tag, which is empty for non-tagged commands, and a type, which identifies its role in the protocol. Similarly, every \texttt{Response} has a type and some subclasses have tags. % TODO: Think if it's a correct design
 
-\section{Message receipt}
+\section{Message receiving}
 
-The response receipt mechanism is designed as a class that notifies the \texttt{Session} object of any incoming message.
+The response receiving mechanism is designed as a class that notifies the \texttt{Session} object of any incoming message.
 
 \section{Diagrams}
 
@@ -143,9 +149,7 @@ The program is implemented in \textit{C++20}. In view of limited support for C++
 
 \subsection{Response parser}
 
-A handwritten backtracking recursive-descent parser is used to parse server responses according to the formal syntax specification in \cite{rfc3501}. The parser structure closely follows the formal specification of the language.
-
-Even though backtracking is known to bear risk of bringing exponential time complexity to the parser, the implemented grammar is comparatively simple, and the messages short, so the amount of backtracking that can happen is limited.
+A handwritten backtracking recursive-descent parser is used to parse server responses according to the formal syntax specification in \cite{rfc3501}. The parser structure closely follows the formal specification of the language, but the response grammar is not fully implemented.
 
 \subsection{Session}
 
@@ -169,7 +173,7 @@ IMFMessage is a class for parsing of selected parts of a message in IMF format\c
 
 \subsection{Receiver}
 
-Receiver is a class whose \texttt{receive} method runs in a separate thread and notifies the Session when there is a new incoming message. TLSReceiver uses TLS/SSL communication instead of plain sockets. The virtual \texttt{receive_inner} method implements the subclass-specific logic, containing the recv() or SSL_read() call. Receiver runs in an infinite loop until the \texttt{stopped} value is \texttt{true}. The socket timeout is set up so that it is possible to stop the receiver thread at any time; if recv() times out, the loop checks the \texttt{stopped} value and continues, not notifying the session. If some data was received, the session is immediately notified.
+Receiver is a class whose \texttt{receive} method runs in a separate thread and notifies the Session when there is a new incoming message. TLSReceiver uses TLS/SSL communication instead of plain sockets. The virtual \texttt{receive\_inner} method implements the subclass-specific logic, containing the recv() or SSL\_read() call. Receiver runs in an infinite loop until the \texttt{stopped} value is \texttt{true}. The socket timeout is set up so that it is possible to stop the receiver thread at any time; if recv() times out, the loop checks the \texttt{stopped} value and continues, not notifying the session. If some data was received, the session is immediately notified.
 
 \subsection{Logger}
 
@@ -185,6 +189,7 @@ The \texttt{Server} class has a buffer for incoming responses, and constructor w
 
 \begin{itemize}
   \item When the program finishes and the destructor of \texttt{Session} is called, it can take up to 1 second before the receiver thread times out, leaves uninterruptible sleep, and is joined.
+
 \end{itemize}
 
 \chapter{Usage}
