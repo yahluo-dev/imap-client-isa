@@ -615,7 +615,15 @@ bool ResponseParser::parse_msg_att_static(std::string &message_contents)
     }
   }
   else if (match("UID"))
-    throw std::logic_error("Not implemented");
+  {
+    EXPECT_MATCH(" ");
+    int number;
+    if (!parse_number(number))
+    {
+      PARSE_FAIL
+    }
+    PARSE_SUCCESS
+  }
   PARSE_FAIL
 }
 
@@ -640,6 +648,7 @@ bool ResponseParser::parse_literal(std::string &parsed_literal)
   {
     throw std::runtime_error("Error: Literal string received from server shorter than expected!");
   }
+  logger.debug_log("Continuing from character " + std::string(data[curr_pos], 1));
   PARSE_SUCCESS
 }
 
@@ -716,7 +725,7 @@ bool ResponseParser::parse_message_data(std::unique_ptr<Response> &parsed_respon
     throw std::logic_error("Not implemented");
   else if (match("FETCH"))
   {
-    std::string message_contents;
+    std::string message_contents = "";
     EXPECT_MATCH(" ");
     if (!parse_msg_att(message_contents))
     {

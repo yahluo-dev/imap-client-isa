@@ -33,7 +33,7 @@ std::string Receiver::receive_inner()
     throw std::runtime_error("recv() failed"); // This is not OK
   }
   else if (bytes_recvd == 0)
-    throw std::logic_error("recv() called but connection already terminated.");
+    stopped = true; // Connection terminated
   return std::string(buffer, bytes_recvd);
 }
 

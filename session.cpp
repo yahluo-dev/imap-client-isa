@@ -48,6 +48,8 @@ void Session::notify_incoming(std::unique_ptr<Response> response)
   {
     case ResponseType::BYE:
       // Got a BYE from the server. Handle disconnecting.
+      logger.error_log("[Server BYE] " + response->get_text());
+      transition(ImapState::LOGOUT);
       break;
     default:
       response_queue.push(std::move(response));
@@ -67,13 +69,19 @@ std::unique_ptr<Response> Session::wait_for_response()
 {
   std::unique_lock ul(incoming_mutex);
 
-  if (!incoming_cv.wait_for(ul, std::chrono::seconds(3), [] { return !response_queue.empty(); }))
+  if (!incoming_cv.wait_for(ul, std::chrono::seconds(3), [this] { return (!response_queue.empty() ||
+                                                                       this->state == ImapState::ERROR ||
+                                                                       this->state == ImapState::LOGOUT); }))
   {
     throw std::runtime_error("Connection established but timed out waiting for response.");
   }
   if (state == ImapState::ERROR)
   {
     throw std::runtime_error(std::string("Connection error: ") + receiver_ex.what());
+  }
+  else if (state == ImapState::LOGOUT)
+  {
+    throw std::runtime_error(std::string("Connection terminated by server."));
   }
 
   std::unique_ptr<Response> response = std::move(response_queue.front());
@@ -311,7 +319,12 @@ std::vector<std::string> Session::fetch(std::vector<uint32_t> sequence_set, bool
     std::vector<std::string> result_vector;
     for (const auto& response : fetch_results_responses)
     {
-      result_vector.push_back(response->get_message_data());
+      std::string message_data = response->get_message_data();
+      if (message_data.empty())
+      {
+        logger.error_log("Server did not send body for message ID " + response->get_tag());
+      }
+      result_vector.push_back(message_data);
     }
     return result_vector;
   }

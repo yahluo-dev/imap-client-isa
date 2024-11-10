@@ -156,7 +156,14 @@ int main(int argc, char *argv[])
     session->login(creds);
     session->select(mailbox_name);
     std::unique_ptr<Client> client = std::make_unique<Client>(std::move(session), output_dir);
-    client->repl();
+    try
+    {
+      client->repl();
+    }
+    catch (std::exception &ex)
+    {
+      logger.error_log(ex.what());
+    }
   }
   else
   {

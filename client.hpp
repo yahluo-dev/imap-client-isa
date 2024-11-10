@@ -8,9 +8,11 @@
 class Client
 {
 protected:
-  const std::string HELP = "DOWNLOADALL [mailbox] - Download all mail in mailbox\n"
-                                  "DOWNLOADNEW [mailbox] - Download all newmail in mailbox\n"
-                                  "READNEW [mailbox] - Mark all mail as read in mailbox\n";
+  const std::string HELP = "DOWNLOADALL [mailbox]\tDownload all mail in mailbox\n"
+                                  "DOWNLOADNEW [mailbox]\tDownload all newmail in mailbox\n"
+                                  "READNEW [mailbox]\tMark all mail as read in mailbox\n"
+                                  "QUIT\tLogout and quit the program.\n"
+                                  "HELP\tShow this message\n";
   struct Commands
   {
     static const std::regex DOWNLOADNEW;

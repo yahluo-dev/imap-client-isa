@@ -21,6 +21,6 @@ std::string TLSReceiver::receive_inner()
     throw std::runtime_error("recv() failed");
   }
   else if (bytes_recvd == 0)
-    throw std::logic_error("Connection already terminated!");
+    stopped = true; // Connection terminated
   return std::string(buffer, bytes_recvd);
 }
