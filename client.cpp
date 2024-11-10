@@ -54,6 +54,12 @@ void Client::repl()
     {
       std::cout << HELP;
     }
+    else if (std::regex_search(input, match, std::regex("QUIT")))
+    {
+      session->logout();
+      std::cout << "Logout." << std::endl;
+      return;
+    }
     else if (std::regex_search(input, match, Commands::DOWNLOADNEW))
     {
       std::string mailbox_name = match[2];
