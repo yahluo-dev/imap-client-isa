@@ -33,8 +33,11 @@ std::ostream& operator<<(std::ostream& os, ImapState response_type)
     case ImapState::LOGOUT:
       os << std::string("LOGOUT");
       break;
-    case ImapState::ERROR:
-      os << std::string("ERROR");
+    case ImapState::RECEIVER_ERROR:
+      os << std::string("RECEIVER_ERROR");
+      break;
+    case ImapState::SERVER_BYED:
+      os << std::string("SERVER_BYED");
       break;
   }
   return os;
@@ -47,9 +50,15 @@ void Session::notify_incoming(std::unique_ptr<Response> response)
   switch(response_type)
   {
     case ResponseType::BYE:
-      // Got a BYE from the server. Handle disconnecting.
-      logger.error_log("[Server BYE] " + response->get_text());
-      transition(ImapState::LOGOUT);
+      if (state != ImapState::LOGOUT)
+      {
+        logger.error_log("[Server BYE] " + response->get_text());
+        transition(ImapState::SERVER_BYED);
+      }
+      else
+      {
+        response_queue.push(std::move(response));
+      }
       break;
     default:
       response_queue.push(std::move(response));
@@ -61,7 +70,7 @@ void Session::notify_incoming(std::unique_ptr<Response> response)
 void Session::receiver_notify_failed(std::exception &ex)
 {
   receiver_ex = ex;
-  transition(ImapState::ERROR);
+  transition(ImapState::RECEIVER_ERROR);
   incoming_cv.notify_one();
 }
 
@@ -70,16 +79,16 @@ std::unique_ptr<Response> Session::wait_for_response()
   std::unique_lock ul(incoming_mutex);
 
   if (!incoming_cv.wait_for(ul, std::chrono::seconds(3), [this] { return (!response_queue.empty() ||
-                                                                       this->state == ImapState::ERROR ||
-                                                                       this->state == ImapState::LOGOUT); }))
+                                                                       this->state == ImapState::RECEIVER_ERROR ||
+                                                                       this->state == ImapState::SERVER_BYED); }))
   {
     throw std::runtime_error("Connection established but timed out waiting for response.");
   }
-  if (state == ImapState::ERROR)
+  if (state == ImapState::RECEIVER_ERROR)
   {
     throw std::runtime_error(std::string("Connection error: ") + receiver_ex.what());
   }
-  else if (state == ImapState::LOGOUT)
+  else if (state == ImapState::SERVER_BYED)
   {
     throw std::runtime_error(std::string("Connection terminated by server."));
   }
@@ -121,12 +130,13 @@ void Session::read(std::vector<uint32_t> sequence_set)
                                               "+FLAGS", "\\Seen"));
 
   std::unique_ptr<Response> response = wait_for_response();
-  wait_for_response();
 }
 
 void Session::logout()
 {
   server->send(std::make_unique<LogoutCommand>(get_new_tag()));
+  transition(ImapState::LOGOUT);
+  std::unique_ptr<Response> response = wait_for_response();
 }
 
 void Session::transition(ImapState _state)
@@ -214,7 +224,7 @@ void Session::receive_greeting()
 //                BAD - command unknown or arguments invalid
 void Session::select(const std::string mailbox)
 {
-  if (state != ImapState::AUTHD)
+  if (state == ImapState::NAUTH)
   {
     throw std::logic_error("Cannot issue this command in current state.");
   }

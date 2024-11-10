@@ -163,6 +163,7 @@ int main(int argc, char *argv[])
     catch (std::exception &ex)
     {
       logger.error_log(ex.what());
+      return 1;
     }
   }
   else

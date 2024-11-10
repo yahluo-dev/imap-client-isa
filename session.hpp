@@ -18,7 +18,8 @@ enum class ImapState
   AUTHD,
   SELECTED,
   LOGOUT,
-  ERROR // Not a protocol state, signifies a connection error.
+  RECEIVER_ERROR, // Not a protocol state, signifies a connection error.
+  SERVER_BYED
 };
 
 std::ostream& operator<<(std::ostream& os, ImapState response_type);
