@@ -203,7 +203,7 @@ TEST(ResponseParserParseTests, FetchResponseParseCorrect)
 
 TEST(ResponseParserParseTests, ByeResponseParseCorrect)
 {
-  std::string test_data = "* BYE Too many invalid IMAP commands.";
+  std::string test_data = "* BYE Too many invalid IMAP commands.\r\n";
 
   ResponseParser parser = ResponseParser(test_data);
   std::unique_ptr<Response> result;

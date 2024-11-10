@@ -223,6 +223,7 @@ bool ResponseParser::parse_resp_cond_bye(std::unique_ptr<Response> &parsed_respo
     restore_pos();
     return false;
   }
+  EXPECT_MATCH(" ");
   size_t text_start = curr_pos;
   if (!parse_resp_text())
   {
