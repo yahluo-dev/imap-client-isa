@@ -1,8 +1,8 @@
 #include <fstream>
 #include "credential.hpp"
 
-std::regex cred_file_username_regex("username=([a-zA-Z0-9@.-]{1,256})", std::regex_constants::ECMAScript);
-std::regex cred_file_password_regex("password=([a-zA-Z0-9]{1,20})", std::regex_constants::ECMAScript);
+std::regex cred_file_username_regex("username *= *([a-zA-Z0-9@.-]{1,256})", std::regex_constants::ECMAScript);
+std::regex cred_file_password_regex("password *= *([a-zA-Z0-9]{1,20})", std::regex_constants::ECMAScript);
 
 std::string Credentials::get_username()
 {
