@@ -13,5 +13,5 @@ void ParserLogger::parser_debug_log(int recursion_level, size_t position,
     data_char = "\\r";
   else
     data_char = data[position];
-  out_stream << "DEBUG :: " << std::string(recursion_level, '.') << "->" << function_name <<  "at char. " << position << "(" << data_char << "): " << message << std::endl;
+  out_stream << "DEBUG :: " << std::string(recursion_level, '.') << "->" << function_name <<  " at char. " << position << "(" << data_char << "): " << message << std::endl;
 }

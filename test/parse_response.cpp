@@ -176,3 +176,38 @@ TEST(ResponseParserParseTests, SearchResponseParseCorrect)
   ASSERT_EQ(result->get_type(), ResponseType::OK);
   ASSERT_EQ(result->get_tag(), "5");
 }
+
+TEST(ResponseParserParseTests, FetchResponseParseCorrect)
+{
+
+  std::string test_data = "* 5 FETCH (FLAGS (\Seen) BODY[] {568}\r\n"
+                "Return-Path: <testmail12232@testmail-testserver.localdomain>\n"
+                "X-Original-To: testmail@asdf-testserver.localdomain\n"
+                "Delivered-To: testmail@asdf-testserver.localdomain\n"
+                "Received: by testmail-testserver.localdomain (Postfix, from userid 30033)\n"
+                "        id 32E1618D1; Thu, 17 Oct 2024 13:01:30 +0200 (CEST)\n"
+                "Date: Thu, 17 Oct 2024 13:01:30 +0200\n"
+                "To: testmail@asdf-testserver.localdomain\n"
+                "Subject: Test Email\n"
+                "User-Agent: mail v14.9.24\n"
+                "Message-Id: <20241017110130.32E1618D1@testmail-testserver.localdomain>\n"
+                "From: testmail12232@testmail-testserver.localdomain\n"
+                "\n"
+                "This is a test mail\n"
+                ")\r\n";
+  ResponseParser parser = ResponseParser(test_data);
+  std::unique_ptr<Response> result;
+  ASSERT_NO_THROW(parser.parse_next(result));
+  ASSERT_EQ(result->get_type(), ResponseType::FETCH);
+}
+
+TEST(ResponseParserParseTests, ByeResponseParseCorrect)
+{
+  std::string test_data = "* BYE Too many invalid IMAP commands.";
+
+  ResponseParser parser = ResponseParser(test_data);
+  std::unique_ptr<Response> result;
+  ASSERT_NO_THROW(parser.parse_next(result));
+  ASSERT_EQ(result->get_type(), ResponseType::BYE);
+  ASSERT_EQ(result->get_text(), "Too many invalid IMAP commands.");
+}
