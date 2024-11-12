@@ -22,7 +22,7 @@ class Server
   std::unique_ptr<Receiver> receiver;
   public:
   Server(const std::string hostname, const std::string port);
-  ~Server();
+  virtual ~Server();
   virtual void send(std::unique_ptr<Command> command);
   int get_socket();
   virtual void receive(Session &session);

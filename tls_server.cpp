@@ -87,6 +87,12 @@ TLSServer::TLSServer(const std::string hostname, const std::string port, const s
 
 TLSServer::~TLSServer()
 {
+  receiver->stop();
+  receiving_thread.join(); // Have to do it here as well to avoid possible use after free
+                           // by SSL_read after the structures are already freed
+  SSL_free(ssl);
+  SSL_CTX_flush_sessions(ctx, 0);
   SSL_CTX_free(ctx);
+  ERR_free_strings();
   EVP_cleanup();
 }

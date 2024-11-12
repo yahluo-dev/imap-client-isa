@@ -52,6 +52,8 @@ Server::Server(const std::string hostname, const std::string port)
   tv.tv_usec = 0;
   setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 
+  freeaddrinfo(server_addrinfo);
+
   receiver = std::make_unique<Receiver>(client_socket);
 }
 
