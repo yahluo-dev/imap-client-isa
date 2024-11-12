@@ -12,7 +12,15 @@ Client::Client(std::unique_ptr<Session> _session, std::string _mail_dir)
 
 void Client::print_prompt()
 {
-  std::cout << "[" << session->get_state() << "] " << "imapcl> ";
+  ImapState state = session->get_state();
+  if (state == ImapState::SELECTED)
+  {
+    std::cout << "[" << state << " " << session->get_current_mailbox() << "] " << "imapcl> ";
+  }
+  else
+  {
+    std::cout << "[" << state << "] " << "imapcl> ";
+  }
 }
 
 void Client::save_mail(std::vector<std::string> messages)
@@ -35,7 +43,7 @@ void Client::save_mail(std::vector<std::string> messages)
 
 void Client::repl()
 {
-  std::cout << "Interactive mode. Type HELP to get help. Exit with ^D." << std::endl;
+  std::cout << "Interactive mode. Type HELP to get help. Exit with ^D or by typing QUIT." << std::endl;
 
   std::string input;
   while(true)

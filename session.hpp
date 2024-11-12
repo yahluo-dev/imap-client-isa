@@ -33,6 +33,7 @@ class Session
   std::string password;
   std::unique_ptr<Server> server;
   std::string get_new_tag();
+  std::string current_mailbox;
   void transition(ImapState state);
   Logger logger;
   void unexpected_response(std::unique_ptr<Response> &response);
@@ -58,6 +59,7 @@ class Session
   void receiver_notify_failed(std::exception &ex);
   void read(std::vector<uint32_t> sequence_set);
   void connect(std::unique_ptr<Server> _server);
+  std::string get_current_mailbox();
 };
 
 #endif // SESSION_H_

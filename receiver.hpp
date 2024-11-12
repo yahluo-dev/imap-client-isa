@@ -12,10 +12,10 @@ protected:
   static constexpr size_t RECVMESSAGE_MAXLEN = 4096;
   static int client_socket;
   virtual std::string receive_inner();
+  static volatile bool stopped;
 public:
   Receiver();
   Receiver(int sock);
-  static volatile bool stopped;
   void receive(Session& session);
   void stop();
 };

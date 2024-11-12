@@ -1,6 +1,7 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <iostream>
+#include <stdexcept>
 #include "tls_server.hpp"
 #include "tls_receiver.hpp"
 
@@ -16,13 +17,17 @@ void TLSServer::create_ssl_context()
 
   if (!ctx)
   {
-    logger.error_log("SSL context creation failed!");
+    #ifndef NDEBUG
     ERR_print_errors_fp(stderr);
-    exit(EXIT_FAILURE);
+    #endif
+    throw std::runtime_error("SSL context creation failed!");
   }
 
 
-  logger.debug_log("Using certificate " + cert_file);
+  if (!cert_file.empty())
+  {
+    logger.debug_log("Using certificate " + cert_file);
+  }
   logger.debug_log("Using certificate directory " + cert_dir);
 
   const char *cert_file_c_string = cert_file.empty() ? nullptr : cert_file.c_str();
@@ -30,10 +35,11 @@ void TLSServer::create_ssl_context()
 
   if (SSL_CTX_load_verify_locations(ctx, cert_file_c_string, cert_dir_c_string) != 1)
   {
-    logger.error_log("Error loading CA certificate directory");
+    #ifndef NDEBUG
     ERR_print_errors_fp(stderr);
+    #endif
     SSL_CTX_free(ctx);
-    exit(EXIT_FAILURE);
+    throw std::runtime_error("Error loading CA certificate file/directory.");
   }
 
   SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, nullptr);
@@ -66,12 +72,14 @@ TLSServer::TLSServer(const std::string hostname, const std::string port, const s
 
   if (SSL_connect(ssl) <= 0)
   {
-    std::cerr << "SSL failed!" << std::endl;
+    #ifndef NDEBUG
     ERR_print_errors_fp(stderr);
+    #endif
+    throw std::runtime_error("Failed to initialize SSL!");
   }
   else
   {
-    std::cout << "Connected with " << SSL_get_cipher(ssl) << " encryption" << std::endl;
+    logger.debug_log("Connected with " + std::string(SSL_get_cipher(ssl)) + " encryption.");
   }
 
   receiver = std::make_unique<TLSReceiver>(ssl);

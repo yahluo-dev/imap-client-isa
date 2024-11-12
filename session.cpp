@@ -238,6 +238,7 @@ void Session::select(const std::string mailbox)
   if (response->get_type() == ResponseType::OK)
   {
     transition(ImapState::SELECTED);
+    current_mailbox = mailbox;
   }
   else
   {
@@ -246,6 +247,10 @@ void Session::select(const std::string mailbox)
   }
 }
 
+std::string Session::get_current_mailbox()
+{
+  return current_mailbox;
+}
 
 // SEARCH
 //    Arguments:  OPTIONAL [CHARSET] specification
