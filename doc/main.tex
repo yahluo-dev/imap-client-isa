@@ -188,6 +188,7 @@ The \texttt{Server} class has a buffer for incoming responses, and constructor w
 
 \begin{itemize}
   \item When the program finishes and the destructor of \texttt{Session} is called, it can take up to 1 second before the receiver thread times out, leaves uninterruptible sleep, and is joined.
+  \item Interactive mode does not show messages summary in the beginning.
 
 \end{itemize}
 
