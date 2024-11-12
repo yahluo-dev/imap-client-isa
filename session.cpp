@@ -128,6 +128,16 @@ void Session::read(std::vector<uint32_t> sequence_set)
                                               "+FLAGS", "\\Seen"));
 
   std::unique_ptr<Response> response = wait_for_response();
+
+  if (response->get_type() == ResponseType::OK)
+  {
+    transition(ImapState::AUTHD);
+  }
+  else
+  {
+      logger.error_log("[" + responseTypeToString(response->get_type()) + "] Server: " + response->get_text());
+      throw std::runtime_error("STORE failed.");
+  }
 }
 
 void Session::logout()
