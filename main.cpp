@@ -121,6 +121,19 @@ int main(int argc, char *argv[])
     return 1;
   }
 
+  // Use default ports
+  if (port_number.empty())
+  {
+    if (use_tls)
+    {
+      port_number = "993";
+    }
+    else
+    {
+      port_number = "143";
+    }
+  }
+
   Credentials creds = Credentials(auth_file);
 
   if (auth_file.empty())
