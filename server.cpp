@@ -76,6 +76,10 @@ void Server::send(std::unique_ptr<Command> command)
 Server::~Server()
 {
   receiver->stop();
-  receiving_thread.join();
+  // The thread may not be running if a derived class constructor threw (which it can)!
+  if (receiving_thread.joinable())
+  {
+    receiving_thread.join();
+  }
   close(client_socket);
 }
