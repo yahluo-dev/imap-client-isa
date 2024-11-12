@@ -293,7 +293,7 @@ g++ -std=c++20 -g -Wall -Wenum-compare -Wenum-conversion -Wpedantic -ggdb -O0 -g
 test/test_main.o test/make_tcp.o command.o test/parse_response.o response_parser.o response.o
 logger.o parser_logger.o -o imapcl-tests
 # ./imapcl-tests
-[==========] Running 11 tests from 2 test suites.
+[==========] Running 16 tests from 3 test suites.
 [----------] Global test environment set-up.
 [----------] 4 tests from CommandMakeTcpTests
 [ RUN      ] CommandMakeTcpTests.Login
@@ -306,7 +306,7 @@ logger.o parser_logger.o -o imapcl-tests
 [       OK ] CommandMakeTcpTests.Fetch (0 ms)
 [----------] 4 tests from CommandMakeTcpTests (0 ms total)
 
-[----------] 7 tests from ResponseParserParseTests
+[----------] 9 tests from ResponseParserParseTests
 [ RUN      ] ResponseParserParseTests.LoginNoError
 [       OK ] ResponseParserParseTests.LoginNoError (0 ms)
 [ RUN      ] ResponseParserParseTests.GreetingParseCorrect
@@ -321,11 +321,24 @@ logger.o parser_logger.o -o imapcl-tests
 [       OK ] ResponseParserParseTests.SelectResponseParseCorrect2 (0 ms)
 [ RUN      ] ResponseParserParseTests.SearchResponseParseCorrect
 [       OK ] ResponseParserParseTests.SearchResponseParseCorrect (0 ms)
-[----------] 7 tests from ResponseParserParseTests (0 ms total)
+[ RUN      ] ResponseParserParseTests.FetchResponseParseCorrect
+[       OK ] ResponseParserParseTests.FetchResponseParseCorrect (0 ms)
+[ RUN      ] ResponseParserParseTests.ByeResponseParseCorrect
+[       OK ] ResponseParserParseTests.ByeResponseParseCorrect (0 ms)
+[----------] 9 tests from ResponseParserParseTests (0 ms total)
+
+[----------] 3 tests from IMFMessageTests
+[ RUN      ] IMFMessageTests.GetDatetimeFormatted
+[       OK ] IMFMessageTests.GetDatetimeFormatted (0 ms)
+[ RUN      ] IMFMessageTests.GetDatetimeFormattedMultipleDates
+[       OK ] IMFMessageTests.GetDatetimeFormattedMultipleDates (0 ms)
+[ RUN      ] IMFMessageTests.GetDatetimeFormattedNoDate
+[       OK ] IMFMessageTests.GetDatetimeFormattedNoDate (0 ms)
+[----------] 3 tests from IMFMessageTests (2 ms total)
 
 [----------] Global test environment tear-down
-[==========] 11 tests from 2 test suites ran. (0 ms total)
-[  PASSED  ] 11 tests.
+[==========] 16 tests from 3 test suites ran. (3 ms total)
+[  PASSED  ] 16 tests.
 #
 \end{verbatim}
 \caption{Running the tests}
