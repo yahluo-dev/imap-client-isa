@@ -75,7 +75,7 @@ void Server::send(std::unique_ptr<Command> command)
 
 Server::~Server()
 {
-  receiver->stopped = true;
+  receiver->stop();
   receiving_thread.join();
   close(client_socket);
 }

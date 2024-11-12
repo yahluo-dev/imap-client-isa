@@ -12,8 +12,6 @@ std::mutex Session::incoming_mutex;
 std::condition_variable Session::incoming_cv;
 std::queue<std::unique_ptr<Response>> Session::response_queue;
 
-volatile bool Receiver::stopped;
-
 std::ostream& operator<<(std::ostream& os, ImapState response_type)
 {
   switch(response_type)

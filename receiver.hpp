@@ -17,6 +17,7 @@ public:
   Receiver(int sock);
   static volatile bool stopped;
   void receive(Session& session);
+  void stop();
 };
 
 #endif // RECEIVER_H_

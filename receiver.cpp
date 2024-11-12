@@ -15,6 +15,11 @@ Receiver::Receiver()
 {
 }
 
+void Receiver::stop()
+{
+  stopped = true;
+};
+
 Receiver::Receiver(int sock)
 {
   client_socket = sock;
