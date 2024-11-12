@@ -8,7 +8,7 @@
 
 
 std::string Receiver::received_data;
-volatile bool stopped;
+volatile bool Receiver::stopped;
 int Receiver::client_socket;
 
 Receiver::Receiver()
