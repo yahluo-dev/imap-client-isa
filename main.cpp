@@ -102,16 +102,16 @@ int main(int argc, char *argv[])
     }
   }
 
-  if (output_dir.empty())
+  if (optind == argc)
   {
-    logger.error_log("Output directory must be specified.");
+    logger.error_log("Hostname must be supplied.");
     std::cout << USAGE << std::endl;
     return 1;
   }
 
-  if (optind == argc)
+  if (output_dir.empty())
   {
-    logger.error_log("Hostname must be supplied.");
+    logger.error_log("Output directory must be specified.");
     std::cout << USAGE << std::endl;
     return 1;
   }
