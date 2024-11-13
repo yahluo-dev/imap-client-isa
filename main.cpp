@@ -105,12 +105,14 @@ int main(int argc, char *argv[])
   if (output_dir.empty())
   {
     logger.error_log("Output directory must be specified.");
+    std::cout << USAGE << std::endl;
     return 1;
   }
 
   if (optind == argc)
   {
     logger.error_log("Hostname must be supplied.");
+    std::cout << USAGE << std::endl;
     return 1;
   }
 
@@ -118,6 +120,7 @@ int main(int argc, char *argv[])
   if (optind != argc-1)
   {
     logger.error_log("Invalid usage: Too many arguments");
+    std::cout << USAGE << std::endl;
     return 1;
   }
 
@@ -137,6 +140,8 @@ int main(int argc, char *argv[])
   if (auth_file.empty())
   {
     logger.error_log("Credentials file must be specified.");
+    std::cout << USAGE << std::endl;
+    return 1;
   }
 
   Credentials creds = Credentials(auth_file);
