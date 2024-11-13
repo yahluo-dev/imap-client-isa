@@ -131,7 +131,7 @@ void Session::read(std::vector<uint32_t> sequence_set)
 
   if (response->get_type() == ResponseType::OK)
   {
-    transition(ImapState::AUTHD);
+    transition(ImapState::SELECTED);
   }
   else
   {

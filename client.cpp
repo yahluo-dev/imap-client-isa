@@ -1,6 +1,7 @@
 #include <iostream>
 #include "client.hpp"
 #include "fnv.hpp"
+#include "imf_message.hpp"
 
 const std::regex Client::Commands::DOWNLOADNEW("DOWNLOADNEW( ([a-zA-Z0-9-_]{1,128}))?", std::regex_constants::ECMAScript);
 const std::regex Client::Commands::DOWNLOADALL("DOWNLOADALL( ([a-zA-Z0-9-_]{1,128}))?", std::regex_constants::ECMAScript);
@@ -28,12 +29,14 @@ void Client::save_mail(std::vector<std::string> messages)
   FNV fnv;
   for (const auto& message : messages)
   {
-    std::string path = mail_dir + "/" + fnv.hash(message) + ".eml";
+    IMFMessage imf_message(message);
+    std::string path = mail_dir + "/" + fnv.hash(message) +
+      imf_message.get_datetime_formatted() + ".eml";
     std::ofstream save_to(path);
     if (!save_to)
     {
       logger.error_log("Could not open " + path + " for writing.");
-      throw std::runtime_error("Could not open " + path + " for writing.");
+      return;
     }
 
     save_to << message << std::endl;
