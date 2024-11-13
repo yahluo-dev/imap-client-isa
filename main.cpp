@@ -134,12 +134,12 @@ int main(int argc, char *argv[])
     }
   }
 
-  Credentials creds = Credentials(auth_file);
-
   if (auth_file.empty())
   {
     logger.error_log("Credentials file must be specified.");
   }
+
+  Credentials creds = Credentials(auth_file);
 
   std::unique_ptr<Server> server;
 
