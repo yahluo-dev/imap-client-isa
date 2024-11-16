@@ -16,7 +16,7 @@ sorting=ynt
 \addbibresource{bibliography.bib}
 
 \title{IMAP Client with TLS support}
-\author{Iaroslav Vasilevskii}
+\author{Iaroslav Vasilevskii\\\texttt{xvasil10}}
 
 \newcommand{\TODO}{
     \textbf{\textcolor{red}{TODO}}
@@ -187,12 +187,17 @@ The \texttt{Server} class has a buffer for incoming responses, and constructor w
 \section{Limitations}
 
 \begin{itemize}
-  \item When the program finishes and the destructor of \texttt{Session} is called, it can take up to 1 second before the receiver thread times out, leaves uninterruptible sleep, and is joined.
   \item Interactive mode does not show messages summary in the beginning.
-
+  \item Argument parsing might fail when \texttt{POSIXLY\_CORRECT} is set and non-flag arguments are not at the very end.
+  \item When the program finishes and the destructor of \texttt{Session} is called, there is an inevitable delay of 1 second before the receiver thread times out, leaves uninterruptible sleep, and is joined.
 \end{itemize}
 
+\section{Problems}
+
+One of the problems encountered was the inability to set a timeout on a socket when waiting on a TCP handshake part of the \texttt{connect()} call. This was resolved by making the socket non-blocking for the \textit{initialization and connection stage}, and then making it blocking again to work well with the already implemented logic.\cite{timeout-sof}
+
 \chapter{Usage}
+
 
 \section{CLI Arguments}
 
@@ -263,6 +268,18 @@ Fetched 1 unseen messages.
 \caption{Usage examples}
 \end{figure}
 
+\section{Authentication file}
+
+The authentication file contains exactly 2 lines defining exactly 2 variables -- \texttt{username} and \texttt{password}.
+
+\begin{figure}[h]
+\begin{verbatim}
+username=alex
+password=password123
+\end{verbatim}
+\caption{Example authentication file}
+\end{figure}
+
 \chapter{Testing}
 
 \textbf{Example of running the tests} can be found in the appendix.
@@ -275,6 +292,16 @@ Fetched 1 unseen messages.
 \item \texttt{test/imf\_message.cpp} - Tests for the \texttt{IMFMessage} class
 \item \texttt{test/test\_main.cpp} - Initialization of the Google Test framework
 \end{itemize}
+
+\section{System tests}
+
+System tests take the form of shell scripts starting the program with different arguments and comparing the actual output to expected.
+
+\begin{itemize}
+\item \texttt{test/system} - \texttt{make\_tcp()} tests for \texttt{Command} and its subclasses
+\end{itemize}
+
+\TODO
 
 \section{Testing results}
 
