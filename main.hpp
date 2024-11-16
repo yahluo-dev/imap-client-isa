@@ -11,6 +11,7 @@ const char *USAGE = "Usage:\n"
                     "\t-h\t Only fetch headers\n"
                     "\t-a AUTH_FILE\t File with login credentials to use\n"
                     "\t-b MAILBOX\t Mailbox to use on the server (default INBOX)\n"
-                    "\t-o OUT_DIR\t Directory to store downloaded messages";
+                    "\t-o OUT_DIR\t Directory to store downloaded messages"
+                    "\t-i\tStart the program in interactive mode";
 
 #endif // MAIN_H
