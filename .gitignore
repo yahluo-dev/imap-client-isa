@@ -23,3 +23,6 @@ doc/*-ERROR
 certs
 test/running/tmp
 test_outdir
+manual.pdf
+test_credentials
+tests-out
