@@ -144,7 +144,17 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  Credentials creds = Credentials(auth_file);
+  Credentials creds;
+
+  try
+  {
+    creds = Credentials(auth_file);
+  }
+  catch (std::runtime_error &ex)
+  {
+    logger.error_log(ex.what());
+    return 1;
+  }
 
   std::unique_ptr<Server> server;
 

@@ -9,6 +9,7 @@ class Credentials
   std::string username;
   std::string password;
   public:
+  Credentials() = default;
   Credentials(std::string _cred_file);
   std::string get_username();
   std::string get_password();
