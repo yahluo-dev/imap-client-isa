@@ -240,7 +240,7 @@ $ imapcl SERVER [-p port] [-T [-c certfile] [-C certaddr]] [-n] [-h]
 \begin{mdframed}[backgroundcolor=lightgray]
 \begin{verbatim}
 # ./imapcl 127.0.0.1 -p 143 -a credentials -b Important -h -o outdir/
-Fetched 5 messages (headers).
+* Fetched 5 messages (headers).
 \end{verbatim}
 \end{mdframed}
 \caption{Fetching message headers}
@@ -251,7 +251,7 @@ Fetched 5 messages (headers).
 \begin{mdframed}[backgroundcolor=lightgray]
 \begin{verbatim}
 # ./imapcl 127.0.0.1 -p 143 -a credentials -b Important -o outdir/
-Fetched 5 messages.
+* Fetched 5 messages.
 \end{verbatim}
 \end{mdframed}
 \caption{Fetching entire messages}
@@ -262,7 +262,7 @@ Fetched 5 messages.
 \begin{mdframed}[backgroundcolor=lightgray]
 \begin{verbatim}
 # ./imapcl 127.0.0.1 -p 143 -a credentials -b Important -n -o outdir/
-Fetched 1 unseen messages.
+* Fetched 1 unseen messages.
 \end{verbatim}
 \end{mdframed}
 \caption{Fetching only unseen messages}

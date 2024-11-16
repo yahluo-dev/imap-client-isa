@@ -74,3 +74,13 @@ imapcl SERVER [-p port] [-T [-c certfile] [-C certaddr]] [-n] [-h] -a auth_file 
 
 ### Example usage
 
+``` shell
+# ./imapcl 127.0.0.1 -p 143 -a credentials -b Important -h -o outdir/
+* Fetched 5 messages (headers).
+
+# ./imapcl 127.0.0.1 -p 143 -a credentials -b Important -o outdir/
+* Fetched 5 messages.
+
+# ./imapcl 127.0.0.1 -p 143 -a credentials -b Important -n -o outdir/
+* Fetched 1 unseen messages.
+```
