@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <stdint.h>
 #include <vector>
-#include "../command.hpp"
+#include "../../command.hpp"
 
 TEST(CommandMakeTcpTests, Login)
 {

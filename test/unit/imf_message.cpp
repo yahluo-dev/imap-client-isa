@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "../imf_message.hpp"
+#include "../../imf_message.hpp"
 #include <stdexcept>
 
 TEST(IMFMessageTests, GetDatetimeFormatted)
