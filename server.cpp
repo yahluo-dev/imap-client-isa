@@ -16,6 +16,7 @@
 #define TIMEOUT_S 1
 #define CONNECT_TIMEOUT_S 5
 
+// https://stackoverflow.com/a/2597669
 void Server::connect_with_timeout(const std::string hostname, const std::string port)
 {
   int rv;
