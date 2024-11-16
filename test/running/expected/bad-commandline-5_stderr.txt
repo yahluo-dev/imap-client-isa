@@ -1,1 +1,1 @@
-ERROR :: Credential file invalid: test_credentials
+ERROR :: Output directory does not exist.
