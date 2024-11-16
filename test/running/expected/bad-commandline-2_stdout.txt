@@ -1,0 +1,11 @@
+Usage:
+imapcl SERVER [-p port] [-T [-c certfile] [-C certaddr]] [-n] [-h] -a auth_file [-b MAILBOX] -o out_dir
+	-p PORT	 Port to connect to. Default is 993 for IMAPS and 143 for plain IMAP.
+	-T	 Enables encryption (use IMAPS)
+	-c FILE	 Specify certificate file
+	-C DIR	 Specify certificate directory (default /etc/ssl/certs)
+	-n	 Only see new messages
+	-h	 Only fetch headers
+	-a AUTH_FILE	 File with login credentials to use
+	-b MAILBOX	 Mailbox to use on the server (default INBOX)
+	-o OUT_DIR	 Directory to store downloaded messages

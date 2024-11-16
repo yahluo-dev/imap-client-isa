@@ -21,3 +21,5 @@ doc/svg-inkscape/
 doc/imapcl-class.svg
 doc/*-ERROR
 certs
+test/running/tmp
+test_outdir
