@@ -11,7 +11,7 @@ test_flags=-g
 EXE=imapcl
 TESTEXE=imapcl-tests
 LOGIN=xvasil10
-test_objects=test/test_main.o test/make_tcp.o test/parse_response.o test/imf_message.cpp
+test_objects=test/unit/test_main.o test/unit/make_tcp.o test/unit/parse_response.o test/unit/imf_message.cpp
 
 all: release
 tar: $(LOGIN).tar
@@ -27,6 +27,9 @@ test: CXXFLAGS += $(debug_flags)
 test: $(TESTEXE)
 test: ./$(TESTEXE)
 
+system-test: release
+	./test/running/test_main.sh
+
 $(EXE): main.o command.o response.o session.o server.o response_parser.o tls_server.o fnv.o logger.o parser_logger.o receiver.o tls_receiver.o credential.o client.o imf_message.o
 	$(CXX) $(CXXFLAGS) -lssl -lcrypto $^ -o $@
 
@@ -36,7 +39,7 @@ $(EXE): main.o command.o response.o session.o server.o response_parser.o tls_ser
 $(TESTEXE): $(test_objects) command.o response_parser.o response.o logger.o parser_logger.o imf_message.o
 	$(CXX) $(CXXFLAGS) -lgtest $^ -o $@
 
-test/%.o: test/%.cpp
+test/unit/%.o: test/unit/%.cpp
 	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
 $(LOGIN).tar:
@@ -44,7 +47,7 @@ $(LOGIN).tar:
 	tar -cvf $@ *.cpp *.hpp README.md test/*.cpp manual.pdf Makefile
 
 clean:
-	$(RM) $(EXE) *.o test/*.o
+	$(RM) $(EXE) *.o test/unit/*.o
 
 .PHONY: clean $(LOGIN).tar
 
