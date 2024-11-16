@@ -20,6 +20,7 @@ class Server
   Logger logger;
   std::thread receiving_thread;
   std::unique_ptr<Receiver> receiver;
+  void connect_with_timeout(const std::string hostname, const std::string port);
   public:
   Server(const std::string hostname, const std::string port);
   virtual ~Server();
