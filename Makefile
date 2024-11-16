@@ -41,7 +41,7 @@ test/%.o: test/%.cpp
 
 $(LOGIN).tar:
 	cp doc/main.pdf ./manual.pdf
-	tar -cvf $@ *.cpp *.hpp README.md test/*.cpp manual.pdf
+	tar -cvf $@ *.cpp *.hpp README.md test/*.cpp manual.pdf Makefile
 
 clean:
 	$(RM) $(EXE) *.o test/*.o
