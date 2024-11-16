@@ -1,9 +1,11 @@
 #include <iostream>
 #include <fstream>
-#include <unistd.h>
 #include <regex>
 #include <stdexcept>
 #include <fstream>
+#include <filesystem>
+#include <unistd.h>
+
 #include "main.hpp"
 #include "server.hpp"
 #include "tls_server.hpp"
@@ -113,6 +115,16 @@ int main(int argc, char *argv[])
   {
     logger.error_log("Output directory must be specified.");
     std::cout << USAGE << std::endl;
+    return 1;
+  }
+  else if (!std::filesystem::exists(output_dir))
+  {
+    logger.error_log("Output directory does not exist.");
+    return 1;
+  }
+  else if (!std::filesystem::is_directory(output_dir))
+  {
+    logger.error_log("Output directory is not a directory!");
     return 1;
   }
 
