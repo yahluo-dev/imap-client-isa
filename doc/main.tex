@@ -85,7 +85,7 @@ A \textbf{Certification Authority} (CA) is a party which is trusted by a group o
 
 \section{Messages}
 
-Messages are represented in the design as classes that inherit from either \texttt{Command} or \texttt{Response} abstract classes. Every command has a tag, which is empty for non-tagged commands, and a type, which identifies its role in the protocol. Similarly, every \texttt{Response} has a type and some subclasses have tags. % TODO: Think if it's a correct design
+Messages are represented in the design as classes that inherit from either \texttt{Command} or \texttt{Response} abstract classes. Every command has a tag, which is empty for non-tagged commands, and a type, which identifies its role in the protocol. Similarly, every \texttt{Response} has a type and some subclasses have tags.
 
 \section{Message receiving}
 
@@ -190,6 +190,8 @@ The \texttt{Server} class has a buffer for incoming responses, and constructor w
   \item Interactive mode does not show messages summary in the beginning.
   \item Argument parsing might fail when \texttt{POSIXLY\_CORRECT} is set and non-flag arguments are not at the very end.
   \item When the program finishes and the destructor of \texttt{Session} is called, there is an inevitable delay of 1 second before the receiver thread times out, leaves uninterruptible sleep, and is joined.
+  \item The time the program has to wait to conclude that the server does not respond depends on the number of entries returned by getaddrinfo().
+  \item System tests are very limited
 \end{itemize}
 
 \section{Problems}
@@ -287,23 +289,26 @@ password=password123
 \section{Unit tests}
 
 \begin{itemize}
-\item \texttt{test/make\_tcp.cpp} - \texttt{make\_tcp()} tests for \texttt{Command} and its subclasses
-\item \texttt{test/parse\_response.cpp} - Tests for the response parser
-\item \texttt{test/imf\_message.cpp} - Tests for the \texttt{IMFMessage} class
-\item \texttt{test/test\_main.cpp} - Initialization of the Google Test framework
+\item \texttt{test/unit/make\_tcp.cpp} - \texttt{make\_tcp()} tests for \texttt{Command} and its subclasses
+\item \texttt{test/unit/parse\_response.cpp} - Tests for the response parser
+\item \texttt{test/unit/imf\_message.cpp} - Tests for the \texttt{IMFMessage} class
+\item \texttt{test/unit/test\_main.cpp} - Initialization of the Google Test framework
+\item \texttt{test/running} - System tests
 \end{itemize}
 
 \section{System tests}
 
-System tests take the form of shell scripts starting the program with different arguments and comparing the actual output to expected.
+System tests take the form of a shell script starting the program with different arguments and comparing the actual output to expected.
 
 \begin{itemize}
-\item \texttt{test/system} - \texttt{make\_tcp()} tests for \texttt{Command} and its subclasses
+\item \texttt{test/running/test_main.sh} - Main test script, runs the program with specified arguments and input, and compares it against what was expected.
+\item \texttt{test/running/tmp/} - Directory for temporary test files
+\item \texttt{test/running/expected/} - Directory with expected stderr and stdout outputs
 \end{itemize}
 
-\TODO
-
 \section{Testing results}
+
+\subsection{Unit tests}
 
 \begin{figure}
 \begin{verbatim}
@@ -368,9 +373,40 @@ logger.o parser_logger.o -o imapcl-tests
 [  PASSED  ] 16 tests.
 #
 \end{verbatim}
-\caption{Running the tests}
+\caption{Running the unit tests}
 \end{figure}
 
+\subsection{System tests}
+
+\begin{figure}
+\begin{verbatim}
+# make system-test
+./test/running/test_main.sh
+====================================
+bad-commandline-1: OK
+====================================
+bad-commandline-2: OK
+====================================
+bad-commandline-3: OK
+====================================
+bad-commandline-4: OK
+====================================
+bad-commandline-5: OK
+====================================
+interactive-1: OK
+====================================
+bad-response-1: OK
+====================================
+bad-response-2: OK
+====================================
+fetch-ok-1: OK
+====================================
+fetch-ok-2: OK
+====================================
+#
+\end{verbatim}
+\caption{Running the unit tests}
+\end{figure}
 
 \chapter{Further development}
 
