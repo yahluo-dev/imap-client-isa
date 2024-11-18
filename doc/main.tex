@@ -64,7 +64,7 @@ Server responses come in three forms:
   \item Command continuation requests
 \end{itemize}
 
-Responses can then be either \textit{tagged} or \textit{untagged}. \textit{Tagged} responses are always status responses which indicate the result of a client-issued command. \textit{Untagged} responses can be either status responses that do not indicate a command result, or server data. Example below is taken from \cite{rfc3501}: There is a client command (\texttt{CAPABILITY} with tag \texttt{a441}), followed by an untagged response with server data (has \texttt{*} instead of a tag) and an 'OK' command completion tagged response.
+Responses can then be either \textit{tagged} or \textit{untagged}. \textit{Tagged} responses are always status responses which indicate the result of a client-issued command. \textit{Untagged} responses can be either status responses that do not indicate a command result, or server data. Example \ref{communication} below is taken from \cite{rfc3501}: There is a client command (\texttt{CAPABILITY} with tag \texttt{a441}), followed by an untagged response with server data (has \texttt{*} instead of a tag) and an 'OK' command completion tagged response.
 
 \begin{figure}[h]
   \centering
@@ -74,6 +74,7 @@ Responses can then be either \textit{tagged} or \textit{untagged}. \textit{Tagge
                S: a441 OK CAPABILITY completed
   \end{verbatim}
   \caption{Example command and response}
+  \label{communication}
 \end{figure}
 
 \section{SSL/TLS}
@@ -116,7 +117,9 @@ A \textbf{Certification Authority} (CA) is a party which is trusted by a group o
 
 \section{Response Parsing}
 
-\textbf{IMAP} is a comparatively complex protocol, and its context-free grammar asks for a more advanced parsing method than mere regular expression matching. Recursive descent parsers, on the other hand, are widely used for analyzing context-free languages, including network protocols. The parser implementation thus turned out straightforward, albeit requiring some care and debugging.
+IMAP is a comparatively complex protocol, and its grammar asks for a more advanced parsing method than mere regular expression matching. Recursive descent parsers, on the other hand, are widely used for analyzing context-free languages, including network protocols. The parser implementation thus turned out straightforward, albeit requiring some care and debugging.
+
+In this project, a recursive descent parser is implemented in \texttt{ResponseParser}, which the \texttt{Receiver} class uses to parse incoming messages.
 
 \section{Messages}
 
@@ -146,7 +149,7 @@ The response receiving mechanism is designed as a class that notifies the \textt
 
 \chapter{Implementation}
 
-The program is implemented in \textit{C++20}. In view of limited support for C++20 on the reference machine with \textit{GCC 11.5.0}, not all features of the standard could be used in the project. Nevertheless, the limitations proved to be insignificant to the project as a whole and caused minimal problems.
+The program is implemented in \textit{C++20}. Even though the default \texttt{gcc} version on the reference machine supports only some features of C++20, limitations proved to be insignificant to the project as a whole and caused minimal problems.
 
 \section{Dependencies}
 
@@ -161,6 +164,8 @@ The program is implemented in \textit{C++20}. In view of limited support for C++
 \section{Project file structure}
 
 \begin{itemize}
+\item \texttt{README.md, README} - Introductory files that provide basic information about the program
+\item \texttt{manual.pdf} - Detailed documentation
 \item \texttt{Makefile} - Makefile managing the build process
 \item \texttt{receiver.hpp, receiver.cpp} - Class implementing asynchronous receipt of messages
 \item \texttt{tls\_receiver.hpp, tls\_receiver.cpp} - A subclass of \texttt{Receiver} supporting TLS
@@ -371,7 +376,7 @@ password=password123
 
 \chapter{Testing}
 
-\textbf{Example of running the tests} can be found in the appendix.
+There are unit tests as well as rudimentary system tests for the program.
 
 \section{Unit tests}
 
