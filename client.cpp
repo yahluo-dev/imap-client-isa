@@ -8,7 +8,7 @@ const std::regex Client::Commands::DOWNLOADALL("DOWNLOADALL( ([a-zA-Z0-9-_]{1,12
 const std::regex Client::Commands::READNEW("READNEW( ([a-zA-Z0-9-_]{1,128}))?", std::regex_constants::ECMAScript);
 
 Client::Client(std::unique_ptr<Session> _session, std::string _mail_dir)
-  : session(std::move(_session)), mail_dir(_mail_dir), logger(std::cerr)
+  : session(std::move(_session)), logger(std::cerr), directoryWriter(_mail_dir)
 {}
 
 void Client::print_prompt()
@@ -24,25 +24,6 @@ void Client::print_prompt()
   }
 }
 
-void Client::save_mail(std::vector<std::string> messages)
-{
-  FNV fnv;
-  for (const auto& message : messages)
-  {
-    IMFMessage imf_message(message);
-    std::string path = mail_dir + "/" + fnv.hash(message) +
-      imf_message.get_datetime_formatted() + ".eml";
-    std::ofstream save_to(path);
-    if (!save_to)
-    {
-      logger.error_log("Could not open " + path + " for writing.");
-      return;
-    }
-
-    save_to << message << std::endl;
-    save_to.close();
-  }
-}
 
 void Client::repl()
 {
@@ -87,8 +68,8 @@ void Client::repl()
       {
         try
         {
-          std::vector<std::string> messages = session->fetch(seq_set, false);
-          save_mail(messages);
+          std::vector<IMFMessage> messages = session->fetch(seq_set, false);
+          directoryWriter.save_messages(messages);
         }
         catch (std::exception &ex)
         {
@@ -112,8 +93,9 @@ void Client::repl()
       {
         try
         {
-          std::vector<std::string> messages = session->fetch(seq_set, false);
-          save_mail(messages);
+          std::vector<IMFMessage> messages = session->fetch(seq_set, false);
+          directoryWriter.save_messages(messages);
+
         }
         catch (std::exception &ex)
         {

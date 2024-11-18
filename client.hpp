@@ -3,6 +3,7 @@
 
 #include <memory>
 #include "session.hpp"
+#include "directory_writer.hpp"
 
 
 class Client
@@ -21,9 +22,9 @@ protected:
   };
   std::unique_ptr<Session> session;
   void print_prompt();
-  std::string mail_dir;
   Logger logger;
   void save_mail(std::vector<std::string> messages);
+  DirectoryWriter directoryWriter;
 public:
   void repl();
   Client(std::unique_ptr<Session> _session, std::string _mail_dir);

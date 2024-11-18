@@ -2,7 +2,6 @@
 #include <fstream>
 #include <regex>
 #include <stdexcept>
-#include <fstream>
 #include <filesystem>
 #include <unistd.h>
 
@@ -15,6 +14,7 @@
 #include "credential.hpp"
 #include "imf_message.hpp"
 #include "client.hpp"
+#include "directory_writer.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -110,8 +110,7 @@ int main(int argc, char *argv[])
     std::cout << USAGE << std::endl;
     return 1;
   }
-
-  if (output_dir.empty())
+  else if (output_dir.empty())
   {
     logger.error_log("Output directory must be specified.");
     std::cout << USAGE << std::endl;
@@ -127,14 +126,20 @@ int main(int argc, char *argv[])
     logger.error_log("Output directory is not a directory!");
     return 1;
   }
-
-  server_hostname = std::string(argv[optind]);
-  if (optind != argc-1)
+  else if (auth_file.empty())
+  {
+    logger.error_log("Credentials file must be specified.");
+    std::cout << USAGE << std::endl;
+    return 1;
+  }
+  else if (optind != argc-1)
   {
     logger.error_log("Invalid usage: Too many arguments");
     std::cout << USAGE << std::endl;
     return 1;
   }
+
+  server_hostname = std::string(argv[optind]);
 
   // Use default ports
   if (port_number.empty())
@@ -149,12 +154,6 @@ int main(int argc, char *argv[])
     }
   }
 
-  if (auth_file.empty())
-  {
-    logger.error_log("Credentials file must be specified.");
-    std::cout << USAGE << std::endl;
-    return 1;
-  }
 
   Credentials creds;
 
@@ -209,7 +208,7 @@ int main(int argc, char *argv[])
   else
   {
     std::vector<uint32_t> seq_set;
-    std::vector<std::string> messages;
+    std::vector<IMFMessage> messages;
     try
     {
       session->receive_greeting();
@@ -241,23 +240,16 @@ int main(int argc, char *argv[])
       return 0;
     }
 
-    FNV fnv;
-    for (const auto& message : messages)
+    DirectoryWriter directoryWriter(output_dir);
+    try
     {
-      IMFMessage imf_message(message);
-      std::string path = output_dir + "/" + fnv.hash(message) +
-        imf_message.get_datetime_formatted() + ".eml";
-      std::ofstream save_to(path);
-      if (!save_to)
-      {
-        logger.error_log("Could not open " + path + " for writing.");
-        return 1;
-      }
-
-      save_to << message << std::endl;
-      save_to.close();
+      directoryWriter.save_messages(messages);
     }
-  
+    catch (std::exception &ex)
+    {
+      logger.error_log(ex.what());
+      return 1;
+    }
   }
 
 
