@@ -282,7 +282,7 @@ std::vector<uint32_t> Session::search(bool only_unseen)
   std::unique_ptr<Response> response;
   do // Skip through untagged responses
   {
-    response = wait_for_response(); // FIXME IMPORTANT: Account for unsolicited data. Do we need concurrence because of that though? Unsolicited data is *always untagged*
+    response = wait_for_response();
     if (response->get_type() == ResponseType::SEARCH)
     {
       search_results_response = std::unique_ptr<SearchResponse>(dynamic_cast<SearchResponse *>(response.release()));
