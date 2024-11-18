@@ -79,6 +79,7 @@ main()
 
     run-test "fetch-ok-1" # Full messages
     run-test "fetch-ok-2" # Only headers
+    run-test "fetch-ok-3" # Fetch messages from "Important"
 
     echo "===================================="
 }
