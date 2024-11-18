@@ -282,7 +282,7 @@ bool ResponseParser::parse_resp_cond_state(std::unique_ptr<Response> &parsed_res
   }
   response_text = data.substr(text_start, curr_pos-text_start);
 
-  parsed_response = std::make_unique<StatusResponse>(response_type, "", response_text); // FIXME: Smart pointer with polymorphism
+  parsed_response = std::make_unique<StatusResponse>(response_type, "", response_text);
 
   pop_pos();
   return true;
@@ -447,7 +447,7 @@ bool ResponseParser::parse_mailbox()
   {
 
   }
-  else if (parse_tag()) // FIXME: parse_astring has to be here
+  else if (parse_tag()) // parse_astring should be here
   {
 
   }

@@ -64,7 +64,7 @@ void TLSServer::receive(Session &session)
 }
 
 TLSServer::TLSServer(const std::string hostname, const std::string port, const std::string _cert_file, const std::string _cert_dir)
-  : Server(hostname, port), cert_dir(_cert_dir), cert_file(_cert_file) // NOTE: Careful with argument order
+  : Server(hostname, port), cert_dir(_cert_dir), cert_file(_cert_file)
 {
   SSL_library_init();
   SSL_load_error_strings();

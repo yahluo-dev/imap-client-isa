@@ -175,7 +175,7 @@ void Session::login(Credentials &creds)
     throw std::logic_error("Cannot issue this command in current state.");
   }
 
-  std::unique_ptr<LoginCommand> login_command = std::make_unique<LoginCommand>("a001", creds.get_username(), creds.get_password()); // FIXME
+  std::unique_ptr<LoginCommand> login_command = std::make_unique<LoginCommand>("a001", creds.get_username(), creds.get_password());
 
   server->send(std::move(login_command));
 
@@ -245,7 +245,7 @@ void Session::select(const std::string mailbox)
   std::unique_ptr<Response> response;
   do // Skip through untagged responses
   {
-    response = wait_for_response(); // FIXME IMPORTANT: Account for unsolicited data. Do we need concurrence because of that though? Unsolicited data is *always untagged*
+    response = wait_for_response();
   } while (response->get_tag() == "");
 
   // The last one must be the one indicating OK status

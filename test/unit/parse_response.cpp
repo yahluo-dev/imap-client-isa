@@ -85,7 +85,7 @@ TEST(ResponseParserParseTests, SelectResponseParseCorrect)
 
   std::string test_data = "* 5 EXISTS\r\n"
                         "* 0 RECENT\r\n"
-                        "* OK [UNSEEN 2] Message 2 is the first unseen message\r\n" // FIXME: This is not valid per RFC. FLAGS Missing
+                        "* OK [UNSEEN 2] Message 2 is the first unseen message\r\n"
                         "A003 OK [READ-WRITE] SELECT completed.\r\n";
 
   std::unique_ptr<Response> result;
