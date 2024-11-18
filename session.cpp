@@ -136,8 +136,7 @@ void Session::read(std::vector<uint32_t> sequence_set)
   }
   else
   {
-      logger.error_log("[" + responseTypeToString(response->get_type()) + "] Server: " + response->get_text());
-      throw std::runtime_error("STORE failed.");
+      throw std::runtime_error("STORE Failed -> [" + responseTypeToString(response->get_type()) + "] Server: " + response->get_text());
   }
 }
 
@@ -191,8 +190,7 @@ void Session::login(Credentials &creds)
   }
   else
   {
-      logger.error_log("[" + responseTypeToString(second_response->get_type()) + "] Server: " + second_response->get_text());
-      throw std::runtime_error("LOGIN failed.");
+      throw std::runtime_error("LOGIN failed -> [" + responseTypeToString(second_response->get_type()) + "] Server: " + second_response->get_text());
   }
 }
 
@@ -253,8 +251,7 @@ void Session::select(const std::string mailbox)
   }
   else
   {
-    logger.error_log("[" + responseTypeToString(response->get_type()) + "] Server: " + response->get_text());
-    throw std::runtime_error("SELECT failed.");
+    throw std::runtime_error("SELECT Failed -> [" + responseTypeToString(response->get_type()) + "] Server: " + response->get_text());
   }
 }
 
@@ -301,8 +298,7 @@ std::vector<uint32_t> Session::search(bool only_unseen)
   }
   else
   {
-    logger.error_log("[" + responseTypeToString(response->get_type()) + "] Server: " + response->get_text());
-    throw std::runtime_error("SEARCH failed");
+    throw std::runtime_error("SEARCH Failed -> [" + responseTypeToString(response->get_type()) + "] Server: " + response->get_text());
   }
 }
 
@@ -354,7 +350,6 @@ std::vector<IMFMessage> Session::fetch(std::vector<uint32_t> sequence_set, bool 
   }
   else
   {
-    logger.error_log("[" + responseTypeToString(response->get_type()) + "] Server: " + response->get_text());
-    throw std::runtime_error("FETCH failed");
+    throw std::runtime_error("FETCH Failed -> [" + responseTypeToString(response->get_type()) + "] Server: " + response->get_text());
   }
 }
