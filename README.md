@@ -84,3 +84,11 @@ imapcl SERVER [-p port] [-T [-c certfile] [-C certaddr]] [-n] [-h] -a auth_file 
 # ./imapcl 127.0.0.1 -p 143 -a credentials -b Important -n -o outdir/
 * Fetched 1 unseen messages.
 ```
+
+## Limitations
+
+- Interactive mode does not show messages summary in the beginning.
+- Argument parsing might fail when `POSIXLY_CORRECT` is set and non-flag arguments are not at the very end.
+- When the program finishes and the destructor of `Session` is called, there is an inevitable delay of 1 second before the receiver thread times out, leaves uninterruptible sleep, and is joined.
+- The time the program has to wait to conclude that the server does not respond depends on the number of entries returned by `getaddrinfo()`.
+- System tests need improvement and assume a certain server state, not easily reproducible.
