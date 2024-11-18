@@ -110,7 +110,6 @@ classDiagram
   class TLSReceiver {
    - SSL ssl
    - receive_inner()
-   + TLSReceiver(TLSServer &server)
   }
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -156,14 +155,25 @@ classDiagram
   }
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %% IMFMessage
+  %% TLSServer
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-  note for Server "Implements low-level connection and TLS-related logic"
+  note for Server "Implements low-level connection logic"
 
   class TLSServer {
     +TLSServer(hostname: string, port: int, \ncert_files:string, cert_dir:string)
   }
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %% DirectoryWriter
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  class DirectoryWriter {
+   +DirectoryWriter(output_dir: string)
+   +save_messages(messages: IMFMessage[])
+  }
+
+   Client -- DirectoryWriter : << uses >>
 
   Server <|-- TLSServer
 
@@ -187,7 +197,7 @@ classDiagram
   Response <|-- SingleNumberResponse
   Response <|-- FetchResponse
 
-  FetchResponse -- IMFMessage : << instantiates >>
+  Session -- IMFMessage : << instantiates >>
 
   Receiver <|-- TLSReceiver
 
