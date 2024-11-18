@@ -22,21 +22,24 @@ debug: $(EXE)
 release: CXXFLAGS += $(release_flags)
 release: $(EXE)
 
+test-all: test system-test
+
 test: CXXFLAGS += $(test_flags)
 test: CXXFLAGS += $(debug_flags)
 test: $(TESTEXE)
-test: ./$(TESTEXE)
+	./$(TESTEXE)
 
 system-test: release
+	echo "Running system tests..."
 	./test/running/test_main.sh
 
-$(EXE): main.o command.o response.o session.o server.o response_parser.o tls_server.o fnv.o logger.o parser_logger.o receiver.o tls_receiver.o credential.o client.o imf_message.o
+$(EXE): main.o command.o response.o session.o server.o response_parser.o tls_server.o fnv.o logger.o parser_logger.o receiver.o tls_receiver.o credential.o client.o imf_message.o directory_writer.o
 	$(CXX) $(CXXFLAGS) -lssl -lcrypto $^ -o $@
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
-$(TESTEXE): $(test_objects) command.o response_parser.o response.o logger.o parser_logger.o imf_message.o
+$(TESTEXE): $(test_objects) command.o response_parser.o response.o logger.o parser_logger.o imf_message.o directory_writer.o fnv.o
 	$(CXX) $(CXXFLAGS) -lgtest $^ -o $@
 
 test/unit/%.o: test/unit/%.cpp
