@@ -1,3 +1,8 @@
+/**
+ * @file imf_message.hpp
+ * @brief A class implementing parsing of some components of a message in IMF format
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #ifndef IMF_MESSAGE_H_
 #define IMF_MESSAGE_H_
 #include <string>

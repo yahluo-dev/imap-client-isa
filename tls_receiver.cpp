@@ -1,3 +1,8 @@
+/**
+ * @file tls_receiver.cpp
+ * @brief A subclass of Receiver supporting TLS
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #include "tls_receiver.hpp"
 #include <stdexcept>
 

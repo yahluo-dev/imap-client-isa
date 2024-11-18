@@ -1,3 +1,8 @@
+/**
+ * @file server.cpp
+ * @brief Class initializing the socket and managing message sending
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>

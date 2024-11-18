@@ -1,3 +1,8 @@
+/**
+ * @file tls_receiver.hpp
+ * @brief A subclass of Receiver supporting TLS
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #ifndef TLS_RECEIVER_H_
 #define TLS_RECEIVER_H_
 

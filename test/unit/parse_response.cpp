@@ -1,3 +1,8 @@
+/**
+ * @file parse_response.cpp
+ * @brief Tests for ResponseParser::parse_next method
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #include <gtest/gtest.h>
 #include "../../response_parser.hpp"
 

@@ -1,3 +1,8 @@
+/**
+ * @file main.hpp
+ * @brief Main function and argument parsing
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #ifndef MAIN_H
 #define MAIN_H
 

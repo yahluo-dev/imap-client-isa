@@ -1,3 +1,8 @@
+/**
+ * @file parser_logger.hpp
+ * @brief Logger subclass for the recursive descent parser
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #ifndef PARSER_LOGGER_H
 #define PARSER_LOGGER_H
 

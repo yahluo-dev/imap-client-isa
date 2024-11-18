@@ -1,3 +1,8 @@
+/**
+ * @file parser_logger.cpp
+ * @brief Logger subclass for the recursive descent parser
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #include "parser_logger.hpp"
 
 void ParserLogger::parser_debug_log(int recursion_level, size_t position,

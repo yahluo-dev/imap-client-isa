@@ -1,3 +1,8 @@
+/**
+ * @file session.hpp
+ * @brief Class managing user actions on a high level
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #ifndef SESSION_H_
 #define SESSION_H_
 

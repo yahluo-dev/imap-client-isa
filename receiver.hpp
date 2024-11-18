@@ -1,3 +1,8 @@
+/**
+ * @file receiver.hpp
+ * @brief Class implementing asynchronous receipt of messages
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #ifndef RECEIVER_H_
 #define RECEIVER_H_
 

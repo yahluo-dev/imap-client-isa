@@ -1,3 +1,8 @@
+/**
+ * @file credential.hpp
+ * @brief Class representing user's supplied credentials
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #ifndef CREDENTIAL_H_
 #define CREDENTIAL_H_
 #include <regex>

@@ -1,3 +1,8 @@
+/**
+ * @file tls_server.cpp
+ * @brief Server subclass adding SSL/TLS initialization and management
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <iostream>

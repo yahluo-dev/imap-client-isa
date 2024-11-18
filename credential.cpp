@@ -1,3 +1,8 @@
+/**
+ * @file credential.cpp
+ * @brief Class representing user's supplied credentials
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #include <fstream>
 #include "credential.hpp"
 

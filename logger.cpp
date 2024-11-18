@@ -1,3 +1,8 @@
+/**
+ * @file logger.cpp
+ * @brief Class implementing logging capabilities with adjustable logging level
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #include "logger.hpp"
 
 void Logger::debug_log( std::string message)

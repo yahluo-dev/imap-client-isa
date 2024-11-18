@@ -1,3 +1,8 @@
+/**
+ * @file client.cpp
+ * @brief Class implementing a REPL to interact with the user.
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #include <iostream>
 #include "client.hpp"
 #include "fnv.hpp"

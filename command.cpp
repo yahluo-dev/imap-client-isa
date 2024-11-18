@@ -1,3 +1,8 @@
+/**
+ * @file command.cpp
+ * @brief Command class representing commands sent by the user
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #include <stdexcept>
 #include <sstream>
 

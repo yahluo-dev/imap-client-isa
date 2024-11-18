@@ -1,3 +1,8 @@
+/**
+ * @file imf_message.cpp
+ * @brief A class implementing parsing of some components of a message in IMF format
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #include <regex>
 #include <stdexcept>
 #include "imf_message.hpp"

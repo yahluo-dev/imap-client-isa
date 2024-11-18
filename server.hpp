@@ -1,3 +1,8 @@
+/**
+ * @file server.hpp
+ * @brief Class initializing the socket and managing message sending
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #ifndef SERVER_H_
 #define SERVER_H_
 

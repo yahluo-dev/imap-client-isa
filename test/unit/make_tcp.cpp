@@ -1,3 +1,8 @@
+/**
+ * @file make_tcp.cpp
+ * @brief Tests for Command::make_tcp method
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #include <gtest/gtest.h>
 #include <stdint.h>
 #include <vector>

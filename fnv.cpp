@@ -1,3 +1,8 @@
+/**
+ * @file fnv.cpp
+ * @brief Fowler-Noll-Vo hashing function class for creating unique filenames
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #include "fnv.hpp"
 #include <iomanip>
 

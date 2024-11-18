@@ -1,3 +1,8 @@
+/**
+ * @file response.cpp
+ * @brief Response class representing messages sent by the server
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #include <stdexcept>
 #include "response.hpp"
 

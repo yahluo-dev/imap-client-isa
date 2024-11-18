@@ -1,3 +1,8 @@
+/**
+ * @file tls_server.hpp
+ * @brief Server subclass adding SSL/TLS initialization and management
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #ifndef TLS_SERVER_H_
 #define TLS_SERVER_H_
 

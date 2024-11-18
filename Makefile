@@ -3,6 +3,7 @@
 #
 # @file
 # @version 0.1
+# author: Iarosav Vasilevskii (xvasil10)
 
 CXXFLAGS += -std=c++20
 debug_flags=-Wall -Wenum-compare -Wenum-conversion -Wpedantic -ggdb -O0 -g

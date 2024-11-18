@@ -1,3 +1,8 @@
+/**
+ * @file imf_message.cpp
+ * @brief Tests for IMFMessage class
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #include <gtest/gtest.h>
 #include "../../imf_message.hpp"
 #include <stdexcept>

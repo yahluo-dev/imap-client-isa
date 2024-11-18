@@ -1,3 +1,8 @@
+/**
+ * @file session.cpp
+ * @brief Class managing user actions on a high level
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #include <iostream>
 #include <sstream>
 #include <memory>

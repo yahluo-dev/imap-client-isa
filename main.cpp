@@ -1,3 +1,8 @@
+/**
+ * @file main.cpp
+ * @brief Main function and argument parsing
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #include <iostream>
 #include <fstream>
 #include <regex>

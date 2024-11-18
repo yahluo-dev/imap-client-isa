@@ -1,3 +1,8 @@
+/**
+ * @file command.hpp
+ * @brief Command class representing commands sent by the user
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #include <string>
 #include <vector>
 #include <stdint.h>

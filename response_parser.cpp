@@ -1,3 +1,8 @@
+/**
+ * @file response_parser.cpp
+ * @brief Class for parsing server response data
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #include <cctype>
 #include <iostream>
 #include <regex>

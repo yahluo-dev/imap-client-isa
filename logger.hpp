@@ -1,3 +1,8 @@
+/**
+ * @file logger.hpp
+ * @brief Class implementing logging capabilities with adjustable logging level
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #ifndef LOGGER_H_
 #define LOGGER_H_
 

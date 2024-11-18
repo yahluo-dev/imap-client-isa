@@ -1,3 +1,8 @@
+/*
+ * @file client.hpp
+ * @brief Class implementing a REPL to interact with the user.
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #ifndef CLIENT_H_
 #define CLIENT_H_
 

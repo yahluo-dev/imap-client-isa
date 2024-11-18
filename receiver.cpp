@@ -1,3 +1,8 @@
+/**
+ * @file receiver.cpp
+ * @brief Class implementing asynchronous receipt of messages
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>

@@ -1,4 +1,7 @@
 #!/bin/bash
+# file: test_main.sh
+# brief: System tests main file
+# author: Iaroslav Vasilevskii (xvasil10)
 IMAPCL=./imapcl
 TESTSTMPDIR=./test/running/tmp
 TESTSEXPDIR=./test/running/expected

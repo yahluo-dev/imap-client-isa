@@ -1,3 +1,8 @@
+/**
+ * @file response_parser.hpp
+ * @brief Class for parsing server response data
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #ifndef RESPONSE_PARSER_H_
 #define RESPONSE_PARSER_H_
 

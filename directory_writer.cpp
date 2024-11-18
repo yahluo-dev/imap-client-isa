@@ -1,3 +1,8 @@
+/**
+ * @file directory_writer.cpp
+ * @brief Class for writing messages to an output directory with an appropriate file name
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #include "directory_writer.hpp"
 #include "fnv.hpp"
 #include <iostream>

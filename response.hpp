@@ -1,3 +1,8 @@
+/**
+ * @file response.hpp
+ * @brief Response class representing messages sent by the server
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #ifndef RESPONSE_H_
 #define RESPONSE_H_
 

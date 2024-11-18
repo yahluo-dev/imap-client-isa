@@ -1,3 +1,8 @@
+/**
+ * @file directory_writer.hpp
+ * @brief Class for writing messages to an output directory with an appropriate file name
+ * @author Iaroslav Vasilevskii (xvasil10)
+ */
 #ifndef DIRECTORY_WRITER_H_
 #define DIRECTORY_WRITER_H_
 
