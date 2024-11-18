@@ -3,6 +3,7 @@
  * @brief Class implementing logging capabilities with adjustable logging level
  * @author Iaroslav Vasilevskii (xvasil10)
  */
+#include <iostream>
 #include "logger.hpp"
 
 void Logger::debug_log( std::string message)
@@ -23,5 +24,5 @@ void Logger::info_log( std::string message)
 {
   if (log_level > LogLevel::INFO)
     return;
-  out_stream << "INFO :: " << message << std::endl;
+  std::cout << "INFO :: " << message << std::endl; // Info always printed to stdout
 }
