@@ -141,6 +141,7 @@ The program is implemented in \textit{C++20}. In view of limited support for C++
 \item \texttt{session.hpp, session.cpp} - Class managing user actions on a high level
 \item \texttt{client.hpp, client.cpp} - A class implementing a REPL to interact with the user in interactive mode.
 \item \texttt{imf\_message.hpp, imf\_message.cpp} - A class implementing parsing of some components of a message in IMF format.
+\item \texttt{directory\_writer.cpp, directory\_writer.hpp} - Class for writing messages to an output directory with an appropriate file name
 \item \texttt{test/} - Directory with test files, further documented in \textit{Testing}.
 \end{itemize}
 
@@ -153,6 +154,10 @@ A handwritten backtracking recursive-descent parser is used to parse server resp
 \subsection{Session}
 
 The \texttt{Session} class represents a connection to the IMAP server. It features a \textit{finite-state machine} for keeping track of the communication state and \textit{methods} for individual actions like \texttt{fetch}, \texttt{select}, \texttt{search} and \texttt{login}.
+
+The \texttt{Session::search} method contains a \texttt{only\_unseen} argument, which corresponds to the requirement in the assignment to fetch new messages. If \texttt{only\_unseen} is \texttt{true}, the method sends a command to search for all messages with the \texttt{UNSEEN} flag set, signifying that the message has never been opened.
+
+It is also possible to fetch all messages with \texttt{RECENT} flag set, but that is not implemented because if the user doesn't read all recent messages in the session when they have this flag, the flag is then lost and it is subsequently impossible to find unopened mail without looking at the \texttt{UNSEEN} flag.
 
 \subsection{Command}
 
@@ -172,7 +177,7 @@ IMFMessage is a class for parsing of selected parts of a message in IMF format\c
 
 \subsection{Receiver}
 
-Receiver is a class whose \texttt{receive} method runs in a separate thread and notifies the Session when there is a new incoming message. TLSReceiver uses TLS/SSL communication instead of plain sockets. The virtual \texttt{receive\_inner} method implements the subclass-specific logic, containing the recv() or SSL\_read() call. Receiver runs in an infinite loop until the \texttt{stopped} value is \texttt{true}. The socket timeout is set up so that it is possible to stop the receiver thread at any time; if recv() times out, the loop checks the \texttt{stopped} value and continues, not notifying the session. If some data was received, the session is immediately notified.
+Receiver is a class whose \texttt{receive} method runs in a separate thread and notifies the Session when there is a new incoming message. TLSReceiver uses TLS/SSL communication instead of plain sockets. The virtual \texttt{receive\_inner} method implements the subclass-specific logic, containing the \texttt{recv()} or \texttt{SSL\_read()} call. Receiver runs in an infinite loop until the \texttt{stopped} value is \texttt{true}. The socket timeout is set up so that it is possible to stop the receiver thread at any time; if \texttt{recv()} times out, the loop checks the \texttt{stopped} value and continues, not notifying the session. If some data was received, the session is immediately notified.
 
 \subsection{Logger}
 
@@ -191,15 +196,21 @@ The \texttt{Server} class has a buffer for incoming responses, and constructor w
   \item Argument parsing might fail when \texttt{POSIXLY\_CORRECT} is set and non-flag arguments are not at the very end.
   \item When the program finishes and the destructor of \texttt{Session} is called, there is an inevitable delay of 1 second before the receiver thread times out, leaves uninterruptible sleep, and is joined.
   \item The time the program has to wait to conclude that the server does not respond depends on the number of entries returned by getaddrinfo().
-  \item System tests are very limited
+  \item System tests need improvement and assume a certain server state, not easily reproducible.
+  \item A cryptic warning about one of the tests is printed, even though there seems to be no error in code.
 \end{itemize}
 
 \section{Problems}
 
 One of the problems encountered was the inability to set a timeout on a socket when waiting on a TCP handshake part of the \texttt{connect()} call. This was resolved by making the socket non-blocking for the \textit{initialization and connection stage}, and then making it blocking again to work well with the already implemented logic.\cite{timeout-sof}
 
-\chapter{Usage}
+\section{Further development}
 
+\begin{itemize}
+  \item Currently, the user has to store the credentials in a plain-text file. It would be reasonable to support encrypted authorisation files (e.g. using gpg).
+\end{itemize}
+
+\chapter{Usage}
 
 \section{CLI Arguments}
 
@@ -270,6 +281,46 @@ $ imapcl SERVER [-p port] [-T [-c certfile] [-C certaddr]] [-n] [-h]
 \caption{Usage examples}
 \end{figure}
 
+\section{Interactive mode usage examples}
+
+\begin{figure}[h!]
+\begin{subfigure}{\textwidth}
+\begin{mdframed}[backgroundcolor=lightgray]
+\begin{verbatim}
+# ./imapcl 127.0.0.1 -p 143 -a credentials -b Important -n -o outdir/ -i
+Interactive mode. Type HELP to get help. Exit with ^D or by typing QUIT.
+[SELECTED Important] imapcl> DOWNLOADNEW
+1 new messages downloaded.
+[SELECTED Important] imapcl> DOWNLOADALL
+5 messages downloaded.
+[SELECTED Important] imapcl> READNEW
+All messages marked as read.
+[SELECTED Important] imapcl> QUIT
+Logout.
+#
+\end{verbatim}
+\end{mdframed}
+\caption{Commands in interactive mode}
+\end{subfigure}
+\begin{subfigure}{\textwidth}
+\begin{mdframed}[backgroundcolor=lightgray]
+\begin{verbatim}
+# ./imapcl 127.0.0.1 -p 143 -a credentials -b Important -n -o outdir/ -i
+Interactive mode. Type HELP to get help. Exit with ^D or by typing QUIT.
+[SELECTED Important] imapcl> DOWNLOADALL INBOX
+2 messages from INBOX downloaded.
+[SELECTED INBOX] imapcl> DOWNLOADALL Important
+1 messages from Important downloaded.
+[SELECTED Important] imapcl> ^DClosing session: Bye!
+
+#
+\end{verbatim}
+\end{mdframed}
+\caption{Downloading from different mailboxes. Notice the status change on the left.}
+\end{subfigure}
+\caption{Interactive usage examples}
+\end{figure}
+
 \section{Authentication file}
 
 The authentication file contains exactly 2 lines defining exactly 2 variables -- \texttt{username} and \texttt{password}.
@@ -301,16 +352,14 @@ password=password123
 System tests take the form of a shell script starting the program with different arguments and comparing the actual output to expected.
 
 \begin{itemize}
-\item \texttt{test/running/test_main.sh} - Main test script, runs the program with specified arguments and input, and compares it against what was expected.
+\item \texttt{test/running/test\_main.sh} - Main test script, runs the program with specified arguments and input, and compares it against what was expected.
 \item \texttt{test/running/tmp/} - Directory for temporary test files
 \item \texttt{test/running/expected/} - Directory with expected stderr and stdout outputs
 \end{itemize}
 
 \section{Testing results}
 
-\subsection{Unit tests}
-
-\begin{figure}
+\begin{figure}[h!]
 \begin{verbatim}
 # make test
 g++ -std=c++20 -g -Wall -Wenum-compare -Wenum-conversion -Wpedantic -ggdb -O0 -g -c
@@ -376,9 +425,7 @@ logger.o parser_logger.o -o imapcl-tests
 \caption{Running the unit tests}
 \end{figure}
 
-\subsection{System tests}
-
-\begin{figure}
+\begin{figure}[h!]
 \begin{verbatim}
 # make system-test
 ./test/running/test_main.sh
@@ -403,16 +450,13 @@ fetch-ok-1: OK
 ====================================
 fetch-ok-2: OK
 ====================================
+fetch-ok-3: OK
+====================================
 #
 \end{verbatim}
-\caption{Running the unit tests}
+\caption{Running the system tests}
 \end{figure}
 
-\chapter{Further development}
-
-\begin{itemize}
-  \item Currently, the user has to store the credentials in a plain-text file. It would be reasonable to support encrypted authorisation files (e.g. using gpg).
-\end{itemize}
 
 \printbibliography
 
