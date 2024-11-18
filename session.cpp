@@ -7,6 +7,7 @@
 #include "response.hpp"
 #include "session.hpp"
 #include "server.hpp"
+#include "imf_message.hpp"
 
 std::mutex Session::incoming_mutex;
 std::condition_variable Session::incoming_cv;
@@ -312,7 +313,7 @@ std::vector<uint32_t> Session::search(bool only_unseen)
 //    Result:     OK - fetch completed
 //                NO - fetch error: can't fetch that data
 //                BAD - command unknown or arguments invalid
-std::vector<std::string> Session::fetch(std::vector<uint32_t> sequence_set, bool only_headers)
+std::vector<IMFMessage> Session::fetch(std::vector<uint32_t> sequence_set, bool only_headers)
 {
   if (state != ImapState::SELECTED)
   {
@@ -339,7 +340,7 @@ std::vector<std::string> Session::fetch(std::vector<uint32_t> sequence_set, bool
   if (response->get_type() == ResponseType::OK)
   {
     logger.debug_log("Fetch OK");
-    std::vector<std::string> result_vector;
+    std::vector<IMFMessage> result_vector;
     for (const auto& response : fetch_results_responses)
     {
       std::string message_data = response->get_message_data();
@@ -347,7 +348,7 @@ std::vector<std::string> Session::fetch(std::vector<uint32_t> sequence_set, bool
       {
         logger.error_log("Server did not send body for message ID " + response->get_tag());
       }
-      result_vector.push_back(message_data);
+      result_vector.push_back(IMFMessage(message_data));
     }
     return result_vector;
   }

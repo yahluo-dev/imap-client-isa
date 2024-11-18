@@ -10,6 +10,7 @@
 #include "server.hpp"
 #include "credential.hpp"
 #include "logger.hpp"
+#include "imf_message.hpp"
 
 enum class ImapState
 {
@@ -38,7 +39,6 @@ class Session
   Logger logger;
   void unexpected_response(std::unique_ptr<Response> &response);
   static std::queue<std::unique_ptr<Response>> response_queue;
-
   static std::condition_variable incoming_cv;
   static std::mutex incoming_mutex;
   std::unique_ptr<Response> wait_for_response();
@@ -53,7 +53,7 @@ class Session
   void select(const std::string mailbox);
   void logout();
   std::vector<uint32_t> search(bool only_unseen);
-  std::vector<std::string> fetch(std::vector<uint32_t> sequence_set,bool only_headers);
+  std::vector<IMFMessage> fetch(std::vector<uint32_t> sequence_set,bool only_headers);
   void receive_greeting();
   void notify_incoming(std::unique_ptr<Response> response);
   void receiver_notify_failed(std::exception &ex);
