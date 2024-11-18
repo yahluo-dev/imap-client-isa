@@ -108,3 +108,4 @@ imapcl SERVER [-p port] [-T [-c certfile] [-C certdir]] [-n] [-h] -a auth_file [
 - When the program finishes and the destructor of `Session` is called, there is an inevitable delay of 1 second before the receiver thread times out, leaves uninterruptible sleep, and is joined.
 - The time the program has to wait to conclude that the server does not respond depends on the number of entries returned by `getaddrinfo()`.
 - System tests need improvement and assume a certain server state, not easily reproducible.
+- The parser does not implement the entirety of the grammar. For example, it does not support mssage continuation requests.

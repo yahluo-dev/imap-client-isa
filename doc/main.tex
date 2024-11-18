@@ -31,7 +31,8 @@ sorting=ynt
 
 {\Large\textbf{imapcl}} is an IMAP4rev1\cite{rfc3501} client able to fetch messages from a server. Besides plain-text communication, it also supports communication secured by TLS with the help of the OpenSSL library.
 
-\textit{Implemented extensions:}
+\bigskip
+\noindent\textit{Implemented extensions:}
 \begin{itemize}
   \item Interactive mode (-i)
 %  \item STARTTLS
@@ -40,6 +41,40 @@ sorting=ynt
 \section{IMAP}
 
 \textbf{IMAP} Version 4rev1 is an application-level protocol that allows for access and manipulation of electronic mail messages on a server. In particular, it supports creating, deleting, and renaming mailboxes, checking for new messages, removing messages and manipulating flags\cite{rfc3501}.
+
+\subsection{Commands}
+
+There are more than 20 commands specified in \cite{rfc3501}, but the most essential ones for this program, as well as for IMAP in general, are the following:
+
+\begin{itemize}
+  \item \texttt{LOGIN} - Authenticate at the server using supplied credentials
+  \item \texttt{SELECT} - Select a mailbox to work with
+  \item \texttt{SEARCH} - Search mailbox for messages that match given criteria
+  \item \texttt{STORE} - Alter data associated with message(s)
+  \item \texttt{FETCH} - Retrieve data associated with message(s)
+\end{itemize}
+
+\subsection{Responses}
+
+Server responses come in three forms:
+
+\begin{itemize}
+  \item Status responses (\texttt{OK}, \texttt{NO}, \texttt{BAD}, \texttt{PREAUTH} and \texttt{BYE})
+  \item Server data
+  \item Command continuation requests
+\end{itemize}
+
+Responses can then be either \textit{tagged} or \textit{untagged}. \textit{Tagged} responses are always status responses which indicate the result of a client-issued command. \textit{Untagged} responses can be either status responses that do not indicate a command result, or server data. Example below is taken from \cite{rfc3501}: There is a client command (\texttt{CAPABILITY} with tag \texttt{a441}), followed by an untagged response with server data (has \texttt{*} instead of a tag) and an 'OK' command completion tagged response.
+
+\begin{figure}[h]
+  \centering
+  \begin{verbatim}
+               C: a441 CAPABILITY
+               S: * CAPABILITY IMAP4rev1 XPIG-LATIN
+               S: a441 OK CAPABILITY completed
+  \end{verbatim}
+  \caption{Example command and response}
+\end{figure}
 
 \section{SSL/TLS}
 
@@ -198,6 +233,7 @@ The \texttt{Server} class has a buffer for incoming responses, and constructor w
   \item The time the program has to wait to conclude that the server does not respond depends on the number of entries returned by getaddrinfo().
   \item System tests need improvement and assume a certain server state, not easily reproducible.
   \item A cryptic warning about one of the tests is printed, even though there seems to be no error in code.
+  \item The parser does not implement the entirety of the grammar. For example, it does not support message continuation requests.
 \end{itemize}
 
 \section{Problems}
