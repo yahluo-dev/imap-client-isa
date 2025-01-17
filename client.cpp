@@ -25,6 +25,116 @@ void Client::print_prompt()
   }
 }
 
+void Client::download_new(const std::smatch &match)
+{
+  std::string mailbox_name = match[2];
+  if (!mailbox_name.empty())
+  {
+    session->select(mailbox_name);
+  }
+  std::vector<uint32_t> seq_set = session->search(true);
+  if (!seq_set.empty())
+  {
+    try
+    {
+      std::vector<IMFMessage> messages = session->fetch(seq_set, false);
+      directoryWriter.save_messages(messages);
+    }
+    catch (std::exception &ex)
+    {
+      logger.error_log(ex.what());
+      return;
+    }
+  }
+  std::cout << seq_set.size() << " new messages "
+            << (mailbox_name.empty() ? "" : ("from " + mailbox_name + " "))
+            << "downloaded." << std::endl;
+}
+
+void Client::download_all(const std::smatch &match)
+{
+  std::string mailbox_name = match[2];
+  if (!mailbox_name.empty())
+  {
+    session->select(mailbox_name);
+  }
+  std::vector<uint32_t> seq_set = session->search(false);
+  if (!seq_set.empty())
+  {
+    try
+    {
+      std::vector<IMFMessage> messages = session->fetch(seq_set, false);
+      directoryWriter.save_messages(messages);
+
+    }
+    catch (std::exception &ex)
+    {
+      logger.error_log(ex.what());
+      return;
+    }
+  }
+  std::cout << seq_set.size() << " messages "
+            << (mailbox_name.empty() ? "" : ("from " + mailbox_name + " "))
+            << "downloaded." << std::endl;
+}
+
+void Client::read_new(const std::smatch &match)
+{
+  std::string mailbox_name = match[2];
+  if (!mailbox_name.empty())
+  {
+    session->select(mailbox_name);
+  }
+  std::vector<uint32_t> seq_set = session->search(false);
+  try
+  {
+    session->read(seq_set);
+  }
+  catch (std::exception &ex)
+  {
+    logger.error_log(ex.what());
+    return;
+  }
+  std::cout << "All messages "
+            << (mailbox_name.empty() ? "" : ("in " + mailbox_name + " "))
+            << "marked as read." << std::endl;
+}
+
+void Client::process_command(const std::string &input)
+{
+  std::smatch match;
+
+  if (std::regex_search(input, match, std::regex("HELP")))
+  {
+    std::cout << HELP;
+  }
+  else if (std::regex_search(input, match, std::regex("QUIT")))
+  {
+    session->logout();
+    std::cout << "Logout." << std::endl;
+    return;
+  }
+  else if (std::regex_search(input, match, Commands::DOWNLOADNEW))
+  {
+    download_new(match);
+  }
+  else if (std::regex_search(input, match, Commands::DOWNLOADALL))
+  {
+    download_all(match);
+  }
+  else if (std::regex_search(input, match, Commands::READNEW))
+  {
+    read_new(match);
+  }
+  else if (input.empty())
+  {
+    return;
+  }
+  else
+  {
+    std::cout << "Please use one of the commands: \n" << HELP;
+  }
+}
 
 void Client::repl()
 {
@@ -39,7 +149,6 @@ void Client::repl()
     }
     print_prompt();
     std::getline(std::cin, input);
-    std::smatch match;
     if (std::cin.eof())
     {
       session->logout();
@@ -47,95 +156,7 @@ void Client::repl()
       std::cout << std::endl;
       return;
     }
-    if (std::regex_search(input, match, std::regex("HELP")))
-    {
-      std::cout << HELP;
-    }
-    else if (std::regex_search(input, match, std::regex("QUIT")))
-    {
-      session->logout();
-      std::cout << "Logout." << std::endl;
-      return;
-    }
-    else if (std::regex_search(input, match, Commands::DOWNLOADNEW))
-    {
-      std::string mailbox_name = match[2];
-      if (!mailbox_name.empty())
-      {
-        session->select(mailbox_name);
-      }
-      std::vector<uint32_t> seq_set = session->search(true);
-      if (!seq_set.empty())
-      {
-        try
-        {
-          std::vector<IMFMessage> messages = session->fetch(seq_set, false);
-          directoryWriter.save_messages(messages);
-        }
-        catch (std::exception &ex)
-        {
-          logger.error_log(ex.what());
-          return;
-        }
-      }
-      std::cout << seq_set.size() << " new messages "
-                << (mailbox_name.empty() ? "" : ("from " + mailbox_name + " "))
-                << "downloaded." << std::endl;
-    }
-    else if (std::regex_search(input, match, Commands::DOWNLOADALL))
-    {
-      std::string mailbox_name = match[2];
-      if (!mailbox_name.empty())
-      {
-        session->select(mailbox_name);
-      }
-      std::vector<uint32_t> seq_set = session->search(false);
-      if (!seq_set.empty())
-      {
-        try
-        {
-          std::vector<IMFMessage> messages = session->fetch(seq_set, false);
-          directoryWriter.save_messages(messages);
 
-        }
-        catch (std::exception &ex)
-        {
-          logger.error_log(ex.what());
-          return;
-        }
-      }
-      std::cout << seq_set.size() << " messages "
-                << (mailbox_name.empty() ? "" : ("from " + mailbox_name + " "))
-                << "downloaded." << std::endl;
-    }
-    else if (std::regex_search(input, match, Commands::READNEW))
-    {
-      std::string mailbox_name = match[2];
-      if (!mailbox_name.empty())
-      {
-        session->select(mailbox_name);
-      }
-      std::vector<uint32_t> seq_set = session->search(false);
-      try
-      {
-        session->read(seq_set);
-      }
-      catch (std::exception &ex)
-      {
-        logger.error_log(ex.what());
-        return;
-      }
-      std::cout << "All messages "
-                << (mailbox_name.empty() ? "" : ("in " + mailbox_name + " "))
-                << "marked as read." << std::endl;
-    }
-    else if (input.empty())
-    {
-      continue;
-    }
-    else
-    {
-      std::cout << "Please use one of the commands: \n" << HELP;
-    }
+    process_command(input);
   }
 }

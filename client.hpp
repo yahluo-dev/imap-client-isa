@@ -32,7 +32,11 @@ protected:
   void print_prompt();
   Logger logger;
   void save_mail(std::vector<std::string> messages);
+  void process_command(const std::string &input);
   DirectoryWriter directoryWriter;
+  void download_new(const std::smatch &match);
+  void download_all(const std::smatch &match);
+  void read_new(const std::smatch &match);
 public:
   void repl();
   Client(std::unique_ptr<Session> _session, std::string _mail_dir);
