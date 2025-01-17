@@ -21,9 +21,12 @@ protected:
                                   "HELP\tShow this message\n";
   struct Commands
   {
-    static const std::regex DOWNLOADNEW;
-    static const std::regex DOWNLOADALL;
-    static const std::regex READNEW;
+    static inline const std::regex DOWNLOADNEW = std::regex("DOWNLOADNEW( ([a-zA-Z0-9-_]{1,128}))?",
+                                                            std::regex_constants::ECMAScript);
+    static inline const std::regex DOWNLOADALL = std::regex("DOWNLOADALL( ([a-zA-Z0-9-_]{1,128}))?",
+                                                            std::regex_constants::ECMAScript);
+    static inline const std::regex READNEW = std::regex("READNEW( ([a-zA-Z0-9-_]{1,128}))?",
+                                                        std::regex_constants::ECMAScript);
   };
   std::unique_ptr<Session> session;
   void print_prompt();

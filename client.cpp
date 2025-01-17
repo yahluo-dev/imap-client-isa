@@ -8,10 +8,6 @@
 #include "fnv.hpp"
 #include "imf_message.hpp"
 
-const std::regex Client::Commands::DOWNLOADNEW("DOWNLOADNEW( ([a-zA-Z0-9-_]{1,128}))?", std::regex_constants::ECMAScript);
-const std::regex Client::Commands::DOWNLOADALL("DOWNLOADALL( ([a-zA-Z0-9-_]{1,128}))?", std::regex_constants::ECMAScript);
-const std::regex Client::Commands::READNEW("READNEW( ([a-zA-Z0-9-_]{1,128}))?", std::regex_constants::ECMAScript);
-
 Client::Client(std::unique_ptr<Session> _session, std::string _mail_dir)
   : session(std::move(_session)), logger(std::cerr), directoryWriter(_mail_dir)
 {}
