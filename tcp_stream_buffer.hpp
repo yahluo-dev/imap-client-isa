@@ -18,12 +18,4 @@ class TCPStreamBuf : public std::streambuf
   ~TCPStreamBuf();
 };
 
-class TCPIStream : public std::istream
-{
-  TCPStreamBuf buf;
-  public:
-  explicit TCPIStream(int socket_fd) : std::istream(&buf), buf(socket_fd) {}
-};
-
-
 #endif // TCP_STREAM_BUFFER_H_
