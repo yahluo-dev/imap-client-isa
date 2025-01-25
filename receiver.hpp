@@ -14,7 +14,7 @@ class Receiver
 {
 protected:
   static std::string received_data;
-  static constexpr size_t RECVMESSAGE_MAXLEN = 4096;
+  static constexpr size_t RECVMESSAGE_MAXLEN = 32000;
   static int client_socket;
   virtual std::string receive_inner();
   static volatile bool stopped;

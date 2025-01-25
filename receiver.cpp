@@ -62,7 +62,7 @@ void Receiver::receive(Session &session)
       return;
     }
 
-    if (!received_data.empty())
+    if (!received_data.empty() && (received_data.size() < 2 || received_data.substr(received_data.size()-2) == "\r\n"))
     {
       ResponseParser response_parser = ResponseParser(received_data);
 
@@ -80,6 +80,10 @@ void Receiver::receive(Session &session)
       }
 
       received_data = "";
+    }
+    else if (received_data.size() == RECVMESSAGE_MAXLEN)
+    {
+      throw std::logic_error("Data received longer than maximum supported length!");
     }
     else
     {
