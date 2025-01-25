@@ -111,3 +111,4 @@ imapcl SERVER [-p port] [-T [-c certfile] [-C certdir]] [-n] [-h] -a auth_file [
 - The time the program has to wait to conclude that the server does not respond depends on the number of entries returned by `getaddrinfo()`.
 - System tests need improvement and assume a certain server state, not easily reproducible.
 - The parser does not implement the entirety of the grammar. For example, it does not support message continuation requests.
+- The receiver has a fixed-size buffer for received data.
