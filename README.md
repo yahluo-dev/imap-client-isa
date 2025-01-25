@@ -1,7 +1,9 @@
 # imapcl -- IMAP Client with TLS Support
 
 Author: *Iaroslav Vasilevskii* (xvasil10)
+
 Made as an assignment part of ISA in winter semester of 2024/25
+
 Final version of the project submitted on 18.11.2024
 
 ## Introduction
