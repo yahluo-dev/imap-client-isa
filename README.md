@@ -74,7 +74,7 @@ imapcl SERVER [-p port] [-T [-c certfile] [-C certdir]] [-n] [-h] -a auth_file [
 
 - *Makefile* - Makefile managing the build process
 - *receiver.hpp, receiver.cpp* - Class implementing asynchronous receipt of messages
-- *tls_receiver.hpp, tls_receiver.cpp* - A subclass of \texttt{Receiver} supporting TLS
+- *tls_receiver.hpp, tls_receiver.cpp* - A subclass of Receiver supporting TLS
 - *command.hpp, command.cpp* - Command class representing commands sent by the user
 - *fnv.hpp, fnv.cpp* - Fowler-Noll-Vo\cite{eastlake-fnv-29} hashing function class for creating unique filenames
 - *logger.hpp, logger.cpp* - Class implementing logging capabilities with adjustable logging level
@@ -92,9 +92,9 @@ imapcl SERVER [-p port] [-T [-c certfile] [-C certdir]] [-n] [-h] -a auth_file [
 
 ### Unit tests
 
-*test/unit/make_tcp.cpp* - \texttt{make\_tcp()} tests for \texttt{Command} and its subclasses
+*test/unit/make_tcp.cpp* - make\_tcp() tests for Command and its subclasses
 *test/unit/parse_response.cpp* - Tests for the response parser
-*test/unit/imf_message.cpp* - Tests for the \texttt{IMFMessage} class
+*test/unit/imf_message.cpp* - Tests for the IMFMessage class
 *test/unit/test_main.cpp* - Initialization of the Google Test framework
 
 ### System tests
@@ -106,9 +106,9 @@ imapcl SERVER [-p port] [-T [-c certfile] [-C certdir]] [-n] [-h] -a auth_file [
 ## Limitations
 
 - Interactive mode does not show messages summary in the beginning.
-- Argument parsing might fail when `POSIXLY_CORRECT` is set and non-flag arguments are not at the very end.
+- Argument parsing might fail when `POSIXLY_CORRECT` is set and non-flag arguments are *not* at the very end.
 - When the program finishes and the destructor of `Session` is called, there is an inevitable delay of 1 second before the receiver thread times out, leaves uninterruptible sleep, and is joined.
 - The time the program has to wait to conclude that the server does not respond depends on the number of entries returned by `getaddrinfo()`.
-- System tests need improvement and assume a certain server state, not easily reproducible.
+- System tests are rudimentary and assume a certain server state.
 - The parser does not implement the entirety of the grammar. For example, it does not support message continuation requests.
 - The receiver has a fixed-size buffer for received data.
